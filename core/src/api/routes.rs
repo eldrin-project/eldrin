@@ -6,9 +6,8 @@ use axum::{
     http::StatusCode,
 };
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 
-use crate::modules::{ModuleManager, ModuleError};
+use crate::modules::{ModuleError};
 use crate::AppState;
 
 #[derive(Serialize)]
@@ -83,12 +82,13 @@ async fn activate_module(
 ) -> Result<StatusCode, StatusCode> {
     let mut module_manager = state.module_manager.lock().await;
     
-    match module_manager.activate_module(&payload.name) {
+    match module_manager.activate_module(&payload.name).await {
         Ok(_) => Ok(StatusCode::OK),
         Err(ModuleError::NotFound(_)) => Err(StatusCode::NOT_FOUND),
         Err(ModuleError::DependencyNotSatisfied { .. }) => Err(StatusCode::BAD_REQUEST),
         Err(ModuleError::CircularDependency(_)) => Err(StatusCode::BAD_REQUEST),
         Err(ModuleError::InvalidModule(_)) => Err(StatusCode::BAD_REQUEST),
+        Err(ModuleError::Database(_)) => Err(StatusCode::INTERNAL_SERVER_ERROR),
     }
 }
 
@@ -99,7 +99,7 @@ async fn deactivate_module(
 ) -> Result<StatusCode, StatusCode> {
     let mut module_manager = state.module_manager.lock().await;
     
-    match module_manager.deactivate_module(&name) {
+    match module_manager.deactivate_module(&name).await {
         Ok(_) => Ok(StatusCode::OK),
         Err(ModuleError::NotFound(_)) => Err(StatusCode::NOT_FOUND),
         Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
