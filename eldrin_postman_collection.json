@@ -1,0 +1,406 @@
+{
+  "info": {
+    "name": "Eldrin API",
+    "description": "API collection for Eldrin project",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Module Management",
+      "item": [
+        {
+          "name": "List All Modules",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/modules",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "modules"]
+            },
+            "description": "Get a list of all available modules"
+          }
+        },
+        {
+          "name": "Get Module by Name",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/modules/example_module",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "modules", "example_module"]
+            },
+            "description": "Get details for a specific module"
+          }
+        },
+        {
+          "name": "Activate Module",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"example_module\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/modules/activate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "modules", "activate"]
+            },
+            "description": "Activate a module by name"
+          }
+        },
+        {
+          "name": "Deactivate Module",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "http://localhost:3000/api/modules/deactivate/example_module",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "modules", "deactivate", "example_module"]
+            },
+            "description": "Deactivate a module by name"
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"securepassword\",\n    \"username\": \"testuser\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "register"]
+            },
+            "description": "Register a new user with email and password"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"securepassword\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "login"]
+            },
+            "description": "Login with email and password"
+          }
+        },
+        {
+          "name": "Request Magic Link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/auth/magic-link",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "auth", "magic-link"]
+            },
+            "description": "Request a magic link for passwordless authentication"
+          }
+        },
+        {
+          "name": "Verify Magic Link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"token\": \"your-magic-link-token\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/auth/verify-magic-link",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "auth", "verify-magic-link"]
+            },
+            "description": "Verify a magic link token"
+          }
+        },
+        {
+          "name": "Request SMS Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"phone\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/auth/sms-code",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "auth", "sms-code"]
+            },
+            "description": "Request a verification code via SMS"
+          }
+        },
+        {
+          "name": "Verify SMS Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/auth/verify-sms-code",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "auth", "verify-sms-code"]
+            },
+            "description": "Verify an SMS code"
+          }
+        },
+        {
+          "name": "OAuth Authorization URL (GitHub)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/users/auth/github/authorize",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "auth", "github", "authorize"]
+            },
+            "description": "Get GitHub OAuth authorization URL"
+          }
+        },
+        {
+          "name": "OAuth Callback (GitHub)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/users/auth/github/callback?code=your-oauth-code",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "auth", "github", "callback"],
+              "query": [
+                {
+                  "key": "code",
+                  "value": "your-oauth-code"
+                }
+              ]
+            },
+            "description": "Handle GitHub OAuth callback"
+          }
+        },
+        {
+          "name": "Connect Provider",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"code\": \"your-oauth-code\",\n    \"provider\": \"github\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/auth/00000000-0000-0000-0000-000000000000/connect-provider",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "auth", "00000000-0000-0000-0000-000000000000", "connect-provider"]
+            },
+            "description": "Connect an OAuth provider to an existing user account"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refresh_token\": \"your-refresh-token\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/auth/refresh",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "auth", "refresh"]
+            },
+            "description": "Refresh an access token"
+          }
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/users/profile/00000000-0000-0000-0000-000000000000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "profile", "00000000-0000-0000-0000-000000000000"]
+            },
+            "description": "Get a user's profile"
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"display_name\": \"John Doe\",\n    \"avatar_url\": \"https://example.com/avatar.jpg\",\n    \"locale\": \"en-US\",\n    \"timezone\": \"America/New_York\",\n    \"metadata\": {\n        \"bio\": \"Software engineer\",\n        \"company\": \"Acme Inc.\"\n    }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/profile/00000000-0000-0000-0000-000000000000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "profile", "00000000-0000-0000-0000-000000000000"]
+            },
+            "description": "Update a user's profile"
+          }
+        },
+        {
+          "name": "Get Admin User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"adminpassword\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "users", "login"]
+            },
+            "description": "Get the automatically created admin user"
+          }
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/api/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["api", "health"]
+            },
+            "description": "Check system health"
+          }
+        },
+        {
+          "name": "Root Endpoint",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://localhost:3000/",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": [""]
+            },
+            "description": "Get root endpoint"
+          }
+        }
+      ]
+    }
+  ]
+}

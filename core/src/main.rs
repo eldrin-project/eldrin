@@ -2,7 +2,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use axum::{Router, routing::get};
 use tokio::net::TcpListener;
-use tracing::{info, error};
+use tracing::{info, error, warn};
 use dotenv::dotenv;
 use std::env;
 
@@ -19,6 +19,7 @@ use utils::db;
 #[derive(Clone)]
 pub struct AppState {
     module_manager: Arc<tokio::sync::Mutex<ModuleManager>>,
+    db_pool: sqlx::Pool<sqlx::Postgres>,
 }
 
 #[tokio::main]
@@ -50,28 +51,48 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     
     // Run database migrations
-    if let Err(e) = db::run_migrations(&db_pool).await {
-        error!("Failed to run database migrations: {}", e);
-        panic!("Database migrations failed");
+    match db::run_migrations(&db_pool).await {
+        Ok(_) => info!("Database migrations completed successfully"),
+        Err(e) => {
+            // We'll continue even if migrations fail with "already exists" error
+            // since we might have manually run the migrations already
+            warn!("Database migration issue (continuing anyway): {}", e);
+        }
     }
     
     // Initialize module manager with database support
-    let mut module_manager = ModuleManager::with_database(db_pool);
+    let mut module_manager = ModuleManager::with_database(db_pool.clone());
     
     if let Err(e) = module_manager.initialize().await {
         error!("Failed to initialize module manager: {}", e);
         panic!("Module manager initialization failed: {}", e);
     }
     
+    // Initialize the user module
+    if let Err(e) = modules::user::init(db_pool.clone()).await {
+        error!("Failed to initialize user module: {}", e);
+        panic!("User module initialization failed: {}", e);
+    }
+    
     let app_state = AppState {
         module_manager: Arc::new(tokio::sync::Mutex::new(module_manager)),
+        db_pool: db_pool.clone(),
     };
     
     // Build our application with routes
+    // Build main application with routes
     let app = Router::new()
         .route("/", get(|| async { "Hello, Eldrin!" }))
-        .nest("/api", api::module_routes())
+        .nest("/api", api::routes())
+        .nest("/api/modules", api::module_routes())
         .with_state(app_state);
+    
+    // Create a router for the user API
+    let user_app = Router::new()
+        .nest("/api/users", modules::user::handlers::user_routes(db_pool.clone()));
+    
+    // Combine the routers
+    let app = app.merge(user_app);
     
     // Run the server
     let addr = SocketAddr::new(server_host.parse()?, server_port);

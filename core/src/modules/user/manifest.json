@@ -1,0 +1,11 @@
+{
+  "name": "user",
+  "version": "0.1.0",
+  "description": "Core user management system",
+  "author": "Eldrin Team",
+  "dependencies": [],
+  "config": {
+    "default_auth_methods": ["email_password", "magic_link"],
+    "allow_registration": true
+  }
+}
