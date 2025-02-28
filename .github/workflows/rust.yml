@@ -24,7 +24,7 @@ jobs:
       - name: Install SQLx CLI
         run: cargo install sqlx-cli
       - name: Prepare SQLx cache
-        run: cargo sqlx prepare -- --lib
+        run: cargo sqlx prepare -- --lib --workspace
       - name: Build
         run: cargo build --verbose
       - name: Run tests
