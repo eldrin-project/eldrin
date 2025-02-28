@@ -17,3 +17,15 @@ sqlx.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 dotenv.workspace = true
+
+# Authentication related dependencies
+argon2 = "0.5"
+rand = "0.8"
+jsonwebtoken = "9.2"
+redis = { version = "0.23", features = ["tokio-comp", "connection-manager"] }
+reqwest = { version = "0.11", features = ["json"] }
+oauth2 = "4.4"
+axum-extra = { version = "0.9", features = ["cookie"] }
+base64 = "0.21"
+time = "0.3"
+async-trait = "0.1"

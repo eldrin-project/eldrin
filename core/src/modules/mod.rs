@@ -1,3 +1,6 @@
+// Core modules
+pub mod user;
+
 // Module management functionality
 pub mod types;
 pub mod loader;

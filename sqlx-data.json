@@ -1,0 +1,15 @@
+{
+  "db": "PostgreSQL",
+  "388c8d70fe26a9c4e28cb9c4ebc8c70faf23e3d86723bc13b450acbb2c9b4ccf": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      }
+    },
+    "query": "\n            SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)\n        "
+  }
+}
