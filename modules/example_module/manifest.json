@@ -1,0 +1,12 @@
+{
+  "name": "example_module",
+  "version": "0.1.0",
+  "description": "An example module to demonstrate the Eldrin module system",
+  "author": "Eldrin Team",
+  "dependencies": [],
+  "repository": "https://github.com/example/example_module",
+  "config": {
+    "enabled": true,
+    "priority": 10
+  }
+}
