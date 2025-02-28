@@ -1,0 +1,9 @@
+[package]
+name = "eldrin-modules"
+version = "0.1.0"
+edition = "2021"
+
+# This file is just a placeholder to help IntelliJ recognize this directory
+# as a Rust crate. Actual modules will be managed differently.
+
+[dependencies]
