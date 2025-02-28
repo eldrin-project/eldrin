@@ -24,7 +24,7 @@ jobs:
       - name: Install SQLx CLI
         run: cargo install sqlx-cli
       - name: Check SQLx cache
-        run: cargo sqlx prepare --check -- --lib
+        run: cargo sqlx prepare --check --workspace -- --lib
         working-directory: ${{ github.workspace }}
       - name: Build
         run: cargo build --verbose
