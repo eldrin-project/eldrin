@@ -8,7 +8,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  SQLX_OFFLINE: true
 
 jobs:
   build:
@@ -26,6 +25,8 @@ jobs:
       - name: Check SQLx cache
         run: cargo sqlx prepare --check --workspace -- --lib
         working-directory: ${{ github.workspace }}
+      - name: Set SQLX_OFFLINE
+        run: echo "SQLX_OFFLINE=true" >> $GITHUB_ENV
       - name: Build
         run: cargo build --verbose
       - name: Run tests
