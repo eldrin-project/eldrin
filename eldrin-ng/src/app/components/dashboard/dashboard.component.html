@@ -1,0 +1,55 @@
+<div class="dashboard-container">
+  <div class="welcome-card">
+    <h2>Welcome to Eldrin Dashboard</h2>
+    <p>This is a protected area. You need to be logged in to see this page.</p>
+    @if (user$ | async; as user) {
+      <div class="user-info">
+        <h3>Current User</h3>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        @if (user.firstName) {
+          <p><strong>First Name:</strong> {{ user.firstName }}</p>
+        }
+        @if (user.lastName) {
+          <p><strong>Last Name:</strong> {{ user.lastName }}</p>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="modules-section">
+    <h3>Your Modules</h3>
+    <div class="modules-grid">
+      <!-- This would be populated with actual modules from the Eldrin backend -->
+      <div class="module-card">
+        <div class="module-header">
+          <h4>Sample Module 1</h4>
+          <span class="module-status active">Active</span>
+        </div>
+        <p>This is a sample module for demonstration purposes.</p>
+        <div class="module-actions">
+          <button class="btn btn-primary">Configure</button>
+          <button class="btn btn-secondary">Disable</button>
+        </div>
+      </div>
+      
+      <div class="module-card">
+        <div class="module-header">
+          <h4>Sample Module 2</h4>
+          <span class="module-status inactive">Inactive</span>
+        </div>
+        <p>This is another sample module for demonstration purposes.</p>
+        <div class="module-actions">
+          <button class="btn btn-primary">Configure</button>
+          <button class="btn btn-secondary">Enable</button>
+        </div>
+      </div>
+      
+      <div class="module-card add-module">
+        <div class="add-module-content">
+          <div class="add-icon">+</div>
+          <p>Add New Module</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
