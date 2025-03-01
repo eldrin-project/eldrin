@@ -248,44 +248,118 @@ async fn oauth_authorize(
     State(service): State<Arc<UserService>>,
     Path(provider): Path<String>,
 ) -> Result<impl IntoResponse, UserError> {
+    tracing::info!("OAuth authorization requested for provider: {}", provider);
+    
     // Parse provider
     let provider = match provider.to_lowercase().as_str() {
-        "github" => OAuthProvider::Github,
-        "google" => OAuthProvider::Google,
-        "keycloak" => OAuthProvider::Keycloak,
-        _ => return Err(UserError::InvalidInput(format!("Invalid provider: {}", provider))),
+        "github" => {
+            tracing::info!("GitHub OAuth provider selected");
+            OAuthProvider::Github
+        },
+        "google" => {
+            tracing::info!("Google OAuth provider selected");
+            OAuthProvider::Google
+        },
+        "keycloak" => {
+            tracing::info!("Keycloak OAuth provider selected");
+            OAuthProvider::Keycloak
+        },
+        _ => {
+            tracing::error!("Invalid OAuth provider requested: {}", provider);
+            return Err(UserError::InvalidInput(format!("Invalid provider: {}", provider)))
+        },
     };
     
     // Get the authorization URL
-    let url = service.get_oauth_authorization_url(provider).await?;
+    tracing::debug!("Getting authorization URL for provider: {:?}", provider);
+    let url = match service.get_oauth_authorization_url(provider).await {
+        Ok(url) => {
+            tracing::info!("Successfully generated OAuth URL: {}", url);
+            url
+        },
+        Err(err) => {
+            tracing::error!("Failed to generate OAuth URL: {:?}", err);
+            return Err(err);
+        }
+    };
     
     // Redirect to the authorization URL
+    tracing::info!("Redirecting user to OAuth provider URL");
     Ok(Redirect::to(url.as_str()))
 }
 
-/// Handle OAuth callback
+/// Handle OAuth callback - used within user routes
 async fn oauth_callback(
     State(service): State<Arc<UserService>>,
     Path(provider): Path<String>,
     Query(params): Query<std::collections::HashMap<String, String>>,
 ) -> Result<impl IntoResponse, UserError> {
+    tracing::info!("OAuth callback received for provider: {}", provider);
+    tracing::debug!("Callback query parameters: {:?}", params);
+    
+    // Check for error response from provider
+    if let Some(error) = params.get("error") {
+        let error_description = params.get("error_description")
+            .map(|s| s.as_str())
+            .unwrap_or("No description provided");
+            
+        tracing::error!("OAuth provider returned error: {} - {}", error, error_description);
+        return Err(UserError::ProviderError(format!("Provider error: {} - {}", error, error_description)));
+    }
+    
     // Parse provider
     let provider = match provider.to_lowercase().as_str() {
-        "github" => OAuthProvider::Github,
-        "google" => OAuthProvider::Google,
-        "keycloak" => OAuthProvider::Keycloak,
-        _ => return Err(UserError::InvalidInput(format!("Invalid provider: {}", provider))),
+        "github" => {
+            tracing::info!("GitHub OAuth callback");
+            OAuthProvider::Github
+        },
+        "google" => {
+            tracing::info!("Google OAuth callback");
+            OAuthProvider::Google
+        },
+        "keycloak" => {
+            tracing::info!("Keycloak OAuth callback");
+            OAuthProvider::Keycloak
+        },
+        _ => {
+            tracing::error!("Invalid OAuth provider in callback: {}", provider);
+            return Err(UserError::InvalidInput(format!("Invalid provider: {}", provider)))
+        },
     };
     
     // Get the code from the query parameters
-    let code = params.get("code")
-        .ok_or_else(|| UserError::InvalidInput("No code provided".to_string()))?;
+    let code = match params.get("code") {
+        Some(code) => {
+            tracing::info!("OAuth code received");
+            code
+        },
+        None => {
+            tracing::error!("No OAuth code provided in callback");
+            return Err(UserError::InvalidInput("No code provided".to_string()));
+        }
+    };
         
     // Handle the OAuth callback
-    let (user, tokens, is_new_user) = service.handle_oauth_callback(provider, code).await?;
+    tracing::info!("Processing OAuth callback");
+    let result = match service.handle_oauth_callback(provider, code).await {
+        Ok(result) => {
+            let (user, tokens, new_user, account_linked) = &result;
+            let status = if *new_user { "new" } else { "existing" };
+            let link_status = if *account_linked { " (account linked)" } else { "" };
+            tracing::info!("OAuth authentication successful for {}{} user: {}", status, link_status, user.id);
+            result
+        },
+        Err(err) => {
+            tracing::error!("OAuth callback processing failed: {:?}", err);
+            return Err(err);
+        }
+    };
+    
+    let (user, tokens, _is_new_user, _is_account_linked) = result;
     
     // In a real implementation, you might want to redirect to a frontend page
     // and pass the tokens as query parameters or cookies
+    tracing::info!("Returning OAuth authentication tokens");
     
     // For now, we'll just return the tokens
     Ok(Json(AuthResponse { 
@@ -295,6 +369,119 @@ async fn oauth_callback(
         expires_in: tokens.expires_in,
         token_type: tokens.token_type,
     }))
+}
+
+/// Public OAuth callback handler for routes outside user APIs
+pub async fn oauth_callback_handler(
+    Query(params): Query<std::collections::HashMap<String, String>>,
+    Path(provider): Path<String>,
+) -> impl IntoResponse {
+    tracing::info!("Public OAuth callback received for provider: {}", provider);
+    tracing::debug!("Callback query parameters: {:?}", params);
+    
+    // Get user service
+    let pool = match get_db_pool().await {
+        Ok(pool) => pool,
+        Err(e) => {
+            tracing::error!("Failed to get DB pool: {}", e);
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR, 
+                Json(serde_json::json!({
+                    "error": "Internal server error",
+                    "message": "Failed to connect to database"
+                }))
+            ).into_response();
+        }
+    };
+    
+    let service = UserService::new(pool);
+    
+    // Parse provider
+    let oauth_provider = match provider.to_lowercase().as_str() {
+        "github" => OAuthProvider::Github,
+        "google" => OAuthProvider::Google,
+        "keycloak" => OAuthProvider::Keycloak,
+        _ => {
+            tracing::error!("Invalid OAuth provider in callback: {}", provider);
+            return (
+                StatusCode::BAD_REQUEST, 
+                Json(serde_json::json!({
+                    "error": "Invalid provider",
+                    "message": format!("Provider {} is not supported", provider)
+                }))
+            ).into_response();
+        }
+    };
+    
+    // Get code from query parameters
+    let code = match params.get("code") {
+        Some(code) => code,
+        None => {
+            tracing::error!("No OAuth code provided in callback");
+            return (
+                StatusCode::BAD_REQUEST, 
+                Json(serde_json::json!({
+                    "error": "No code provided",
+                    "message": "No code was provided in the callback"
+                }))
+            ).into_response();
+        }
+    };
+    
+    // Handle the OAuth callback
+    tracing::info!("Processing OAuth callback in public handler");
+    match service.handle_oauth_callback(oauth_provider, code).await {
+        Ok((user, tokens, is_new_user, is_account_linked)) => {
+            let status = if is_new_user { "new" } else { "existing" };
+            let link_status = if is_account_linked { " (account linked)" } else { "" };
+            tracing::info!("OAuth authentication successful for {}{} user: {}", status, link_status, user.id);
+            
+            // In a real implementation, you would redirect to the frontend
+            // with tokens in query params or set cookies
+            // For now, we'll just return JSON with the tokens
+            (
+                StatusCode::OK,
+                Json(serde_json::json!({
+                    "user": user,
+                    "access_token": tokens.access_token,
+                    "refresh_token": tokens.refresh_token,
+                    "expires_in": tokens.expires_in,
+                    "token_type": tokens.token_type
+                }))
+            ).into_response()
+        },
+        Err(err) => {
+            tracing::error!("OAuth callback processing failed: {:?}", err);
+            let (status, message) = match &err {
+                UserError::NotFound => (StatusCode::NOT_FOUND, "User not found"),
+                UserError::AuthFailed => (StatusCode::UNAUTHORIZED, "Authentication failed"),
+                UserError::InvalidInput(_) => (StatusCode::BAD_REQUEST, "Invalid input"),
+                UserError::DatabaseError(_) => (StatusCode::INTERNAL_SERVER_ERROR, "Database error"),
+                UserError::ProviderError(_) => (StatusCode::BAD_REQUEST, "Provider error"),
+                UserError::AuthError(_) => (StatusCode::UNAUTHORIZED, "Authentication error"),
+            };
+            
+            (
+                status,
+                Json(serde_json::json!({
+                    "error": message,
+                    "message": format!("{}", err)
+                }))
+            ).into_response()
+        }
+    }
+}
+
+/// Helper function to get DB pool
+async fn get_db_pool() -> Result<PgPool, String> {
+    // Get database URL from environment variables
+    let database_url = std::env::var("DATABASE_URL")
+        .unwrap_or_else(|_| "postgres://eldrin:eldrin_password@localhost:5432/eldrin_dev".to_string());
+    
+    // Connect to the database
+    PgPool::connect(&database_url)
+        .await
+        .map_err(|e| format!("Failed to connect to database: {}", e))
 }
 
 /// Connect a provider to an existing user account
