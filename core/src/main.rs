@@ -1,10 +1,11 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
-use axum::{Router, routing::get};
+use axum::{Router, routing::get, http::{Method, HeaderName, HeaderValue}};
 use tokio::net::TcpListener;
 use tracing::{info, error, warn};
 use dotenv::dotenv;
 use std::env;
+use tower_http::cors::{CorsLayer, Any};
 
 mod api;
 mod models;
@@ -27,8 +28,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load environment variables
     dotenv().ok();
     
-    // Initialize logger
-    tracing_subscriber::fmt::init();
+    // Initialize logger with more detailed settings
+    let env_filter = env::var("RUST_LOG")
+        .unwrap_or_else(|_| "eldrin_core=debug,tower_http=debug,axum=debug".to_string());
+        
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .with_target(true)
+        .init();
+        
+    info!("Logger initialized with filter: {}", env_filter);
     
     // Get database URL from environment variables
     let database_url = env::var("DATABASE_URL")
@@ -79,20 +88,44 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         db_pool: db_pool.clone(),
     };
     
+    // Configure CORS
+    // Get the Angular app URL from environment or use default
+    let frontend_url = env::var("FRONTEND_URL")
+        .unwrap_or_else(|_| "http://localhost:4200".to_string());
+    
+    let cors = CorsLayer::new()
+        // Only allow requests from our Angular app
+        .allow_origin(frontend_url.parse::<HeaderValue>().unwrap())
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS])
+        .allow_headers([
+            HeaderName::from_static("content-type"),
+            HeaderName::from_static("authorization"),
+            HeaderName::from_static("x-requested-with"),
+            HeaderName::from_static("accept"),
+            HeaderName::from_static("origin"),
+        ])
+        .allow_credentials(true);
+    
     // Build our application with routes
-    // Build main application with routes
     let app = Router::new()
         .route("/", get(|| async { "Hello, Eldrin!" }))
         .nest("/api", api::routes())
         .nest("/api/modules", api::module_routes())
-        .with_state(app_state);
+        .with_state(app_state)
+        .layer(cors.clone());
     
-    // Create a router for the user API
+    // Create a router for the user API 
     let user_app = Router::new()
-        .nest("/api/users", modules::user::handlers::user_routes(db_pool.clone()));
+        .nest("/api/users", modules::user::handlers::user_routes(db_pool.clone()))
+        .layer(cors.clone());
     
+    // Create a router for OAuth callbacks
+    let auth_app = Router::new()
+        .route("/auth/:provider/callback", get(modules::user::handlers::oauth_callback_handler))
+        .layer(cors.clone());
+        
     // Combine the routers
-    let app = app.merge(user_app);
+    let app = app.merge(user_app).merge(auth_app);
     
     // Run the server
     let addr = SocketAddr::new(server_host.parse()?, server_port);

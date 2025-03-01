@@ -6,6 +6,7 @@ pub mod auth;
 
 pub use models::{User, UserRole, UserProfile};
 pub use service::UserService;
+pub use handlers::oauth_callback_handler;
 
 /// Initialize the user module
 pub async fn init(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Error>> {

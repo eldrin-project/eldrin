@@ -3,12 +3,12 @@ use crate::modules::user::service::{UserService, UserError, AuthTokens};
 use crate::modules::user::auth::OAuthProvider;
 use axum::{
     extract::{Json, State, Path, Query, Form},
-    http::{StatusCode, HeaderMap, HeaderValue, HeaderName},
-    response::{IntoResponse, Response, Redirect},
+    http::{StatusCode, HeaderMap, HeaderValue, HeaderName, header},
+    response::{IntoResponse, Response, Redirect, Html},
     routing::{post, get, put},
     Router,
 };
-use axum_extra::extract::{cookie::{Cookie, SameSite}, CookieJar};
+use axum_extra::extract::cookie::{Cookie, SameSite};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use sqlx::types::Uuid;
@@ -357,18 +357,27 @@ async fn oauth_callback(
     
     let (user, tokens, _is_new_user, _is_account_linked) = result;
     
-    // In a real implementation, you might want to redirect to a frontend page
-    // and pass the tokens as query parameters or cookies
-    tracing::info!("Returning OAuth authentication tokens");
+    // Redirect to Angular route that will handle token storage
+    tracing::info!("Redirecting to frontend auth-callback route to handle token storage");
     
-    // For now, we'll just return the tokens
-    Ok(Json(AuthResponse { 
-        user, 
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        expires_in: tokens.expires_in,
-        token_type: tokens.token_type,
-    }))
+    // Get frontend URL from environment variables or use default
+    let frontend_url = std::env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:4200".to_string());
+    
+    // Create auth-callback route URL with tokens as parameters
+    let auth_callback_url = format!(
+        "{}/auth-callback?access_token={}&refresh_token={}&user_id={}&email={}&username={}",
+        frontend_url,
+        tokens.access_token,
+        tokens.refresh_token,
+        user.id,
+        user.email.as_deref().unwrap_or(""),
+        user.username
+    );
+    
+    tracing::info!("Redirecting to frontend auth-callback route");
+    
+    // Redirect to the auth-callback URL in the Angular app
+    Ok(Redirect::to(&auth_callback_url))
 }
 
 /// Public OAuth callback handler for routes outside user APIs
@@ -436,19 +445,24 @@ pub async fn oauth_callback_handler(
             let link_status = if is_account_linked { " (account linked)" } else { "" };
             tracing::info!("OAuth authentication successful for {}{} user: {}", status, link_status, user.id);
             
-            // In a real implementation, you would redirect to the frontend
-            // with tokens in query params or set cookies
-            // For now, we'll just return JSON with the tokens
-            (
-                StatusCode::OK,
-                Json(serde_json::json!({
-                    "user": user,
-                    "access_token": tokens.access_token,
-                    "refresh_token": tokens.refresh_token,
-                    "expires_in": tokens.expires_in,
-                    "token_type": tokens.token_type
-                }))
-            ).into_response()
+            // Get frontend URL from environment variables or use default
+            let frontend_url = std::env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:4200".to_string());
+            
+            // Create auth-callback route URL with tokens as parameters
+            let auth_callback_url = format!(
+                "{}/auth-callback?access_token={}&refresh_token={}&user_id={}&email={}&username={}",
+                frontend_url,
+                tokens.access_token,
+                tokens.refresh_token,
+                user.id,
+                user.email.as_deref().unwrap_or(""),
+                user.username
+            );
+            
+            tracing::info!("Redirecting to frontend auth-callback route");
+            
+            // Redirect to the auth-callback URL in the Angular app
+            Redirect::to(&auth_callback_url).into_response()
         },
         Err(err) => {
             tracing::error!("OAuth callback processing failed: {:?}", err);
