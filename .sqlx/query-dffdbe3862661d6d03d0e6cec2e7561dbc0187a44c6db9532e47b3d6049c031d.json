@@ -1,0 +1,103 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO modules (\n                name, version, description, author, is_core, active, path, \n                dependencies, repository, config\n            )\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)\n            ON CONFLICT (name) \n            DO UPDATE SET\n                version = EXCLUDED.version,\n                description = EXCLUDED.description,\n                author = EXCLUDED.author,\n                is_core = EXCLUDED.is_core,\n                active = EXCLUDED.active,\n                path = EXCLUDED.path,\n                dependencies = EXCLUDED.dependencies,\n                repository = EXCLUDED.repository,\n                config = EXCLUDED.config,\n                updated_at = NOW()\n            RETURNING \n                id, name, version, description, author, is_core, active, path,\n                dependencies as \"dependencies: serde_json::Value\", repository, \n                config as \"config: serde_json::Value\", created_at, updated_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "version",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "author",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "is_core",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 6,
+        "name": "active",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "path",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 8,
+        "name": "dependencies: serde_json::Value",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 9,
+        "name": "repository",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 10,
+        "name": "config: serde_json::Value",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 11,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 12,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Varchar",
+        "Varchar",
+        "Text",
+        "Varchar",
+        "Bool",
+        "Bool",
+        "Varchar",
+        "Jsonb",
+        "Varchar",
+        "Jsonb"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "dffdbe3862661d6d03d0e6cec2e7561dbc0187a44c6db9532e47b3d6049c031d"
+}

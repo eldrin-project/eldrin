@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT id, email, phone, username, password_hash, created_at, updated_at, last_login, active, email_verified, phone_verified, role\n            FROM users\n            WHERE id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "email",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "phone",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "username",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "password_hash",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "last_login",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "active",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 9,
+        "name": "email_verified",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 10,
+        "name": "phone_verified",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 11,
+        "name": "role",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "d2cfa6d05c30625386c906dbc6ff5cd11b296461eef2e331a9add47715c38d8a"
+}

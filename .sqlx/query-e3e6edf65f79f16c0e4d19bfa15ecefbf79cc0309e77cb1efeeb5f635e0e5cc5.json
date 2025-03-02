@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE auth_tokens\n            SET used = true\n            WHERE id = $1\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e3e6edf65f79f16c0e4d19bfa15ecefbf79cc0309e77cb1efeeb5f635e0e5cc5"
+}

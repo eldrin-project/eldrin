@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE modules\n            SET active = $1, updated_at = NOW()\n            WHERE name = $2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bool",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b23a5ad80a8f785b3c564a481c05ed628f608c5766971e7b21cc8a351c8bfdc4"
+}

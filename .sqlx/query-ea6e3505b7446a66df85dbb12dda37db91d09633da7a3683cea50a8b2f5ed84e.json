@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO auth_tokens (id, user_id, token, token_type, expires_at, created_at, used, metadata)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Timestamptz",
+        "Timestamptz",
+        "Bool",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ea6e3505b7446a66df85dbb12dda37db91d09633da7a3683cea50a8b2f5ed84e"
+}

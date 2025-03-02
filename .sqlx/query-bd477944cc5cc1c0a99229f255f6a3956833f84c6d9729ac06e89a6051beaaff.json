@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            DELETE FROM modules\n            WHERE name = $1\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bd477944cc5cc1c0a99229f255f6a3956833f84c6d9729ac06e89a6051beaaff"
+}

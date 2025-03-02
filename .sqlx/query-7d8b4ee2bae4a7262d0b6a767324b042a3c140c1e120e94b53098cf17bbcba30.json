@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO user_profiles (user_id, display_name, avatar_url, created_at, updated_at)\n            VALUES ($1, $2, $3, $4, $5)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Text",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7d8b4ee2bae4a7262d0b6a767324b042a3c140c1e120e94b53098cf17bbcba30"
+}

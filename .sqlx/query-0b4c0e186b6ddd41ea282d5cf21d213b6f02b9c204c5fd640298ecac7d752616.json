@@ -1,0 +1,94 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT \n                id, name, version, description, author, is_core, active, path,\n                dependencies as \"dependencies: serde_json::Value\", repository, \n                config as \"config: serde_json::Value\", created_at, updated_at\n            FROM modules\n            WHERE name = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "version",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "author",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "is_core",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 6,
+        "name": "active",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "path",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 8,
+        "name": "dependencies: serde_json::Value",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 9,
+        "name": "repository",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 10,
+        "name": "config: serde_json::Value",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 11,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 12,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "0b4c0e186b6ddd41ea282d5cf21d213b6f02b9c204c5fd640298ecac7d752616"
+}

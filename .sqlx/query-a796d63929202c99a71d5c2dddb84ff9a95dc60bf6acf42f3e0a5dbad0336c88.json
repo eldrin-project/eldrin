@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO user_external_auths (id, user_id, provider, provider_user_id, access_token, refresh_token, expires_at, provider_data, created_at, updated_at)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Text",
+        "Text",
+        "Timestamptz",
+        "Jsonb",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a796d63929202c99a71d5c2dddb84ff9a95dc60bf6acf42f3e0a5dbad0336c88"
+}
