@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, map, tap, throwError } from 'rxjs';
 import { User } from '../models/user.model';
+import {Router} from '@angular/router';
 
 interface AuthResponse {
   user: User;
@@ -25,8 +26,8 @@ export class AuthService {
   private readonly API_URL = 'http://localhost:3000/api';
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
-  
-  constructor(private http: HttpClient) {
+
+  constructor(private http: HttpClient, private router: Router) {
     // Check if user is already logged in
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
@@ -41,7 +42,7 @@ export class AuthService {
   register(email: string, password: string, firstName?: string, lastName?: string): Observable<User> {
     // Make sure content type is set to application/json
     const headers = { 'Content-Type': 'application/json' };
-    
+
     return this.http.post<AuthResponse>(`${this.API_URL}/users/register`, {
       email,
       password,
@@ -64,7 +65,7 @@ export class AuthService {
   login(email: string, password: string): Observable<User> {
     // Make sure content type is set to application/json
     const headers = { 'Content-Type': 'application/json' };
-    
+
     return this.http.post<AuthResponse>(`${this.API_URL}/users/login`, {
       email,
       password
@@ -103,7 +104,7 @@ export class AuthService {
 
     // Make sure content type is set to application/json
     const headers = { 'Content-Type': 'application/json' };
-    
+
     return this.http.post<TokenResponse>(
       `${this.API_URL}/users/auth/refresh`,
       { refresh_token: refreshToken },
@@ -112,7 +113,7 @@ export class AuthService {
       tap(response => {
         // Update the stored refresh token
         localStorage.setItem('refreshToken', response.refresh_token);
-        
+
         // Update the current user's auth token
         if (this.currentUser) {
           const updatedUser = {
@@ -130,12 +131,14 @@ export class AuthService {
     localStorage.removeItem('currentUser');
     localStorage.removeItem('refreshToken');
     this.currentUserSubject.next(null);
+    // redirect user to login page
+    this.router.navigate(['/login']);
   }
 
   isAuthenticated(): boolean {
     return !!this.currentUser;
   }
-  
+
   // Public method for setting user from external auth providers
   setAuthenticatedUser(user: User): void {
     this.setCurrentUser(user);
