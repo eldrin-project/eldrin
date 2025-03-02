@@ -1,4 +1,4 @@
-FROM rust:1.76-slim-bookworm as builder
+FROM rust:latest as builder
 
 WORKDIR /usr/src/eldrin
 
@@ -22,15 +22,17 @@ RUN mkdir -p core/src && \
     echo "fn main() {}" > modules/src/lib.rs
 
 # Build dependencies
-RUN cargo build
+ENV SQLX_OFFLINE=true
+RUN SQLX_OFFLINE=true cargo build
 
 # Now, copy the real source code
 COPY . .
 
 # Build the application in release mode
-RUN cargo build
+ENV SQLX_OFFLINE=true
+RUN SQLX_OFFLINE=true cargo build --release
 
-FROM debian:bookworm-slim
+FROM rust:latest
 
 # Install runtime dependencies
 RUN apt-get update && \
@@ -42,7 +44,7 @@ RUN apt-get update && \
 WORKDIR /app
 
 # Copy the executable from the builder
-COPY --from=builder /usr/src/eldrin/target/debug/eldrin-core /app/
+COPY --from=builder /usr/src/eldrin/target/release/eldrin-core /app/
 COPY --from=builder /usr/src/eldrin/modules/ /app/modules/
 COPY --from=builder /usr/src/eldrin/start.sh /app/
 

@@ -61,7 +61,7 @@ services:
       - eldrin-network
     volumes:
       - ./modules:/app/modules
-    command: ["cargo", "run"]
+    command: ["/app/eldrin-core"]
 
   # You can add additional services here in the future:
   # - Redis for caching
