@@ -61,6 +61,8 @@ impl UserRepository {
             email_verified: false,
             phone_verified: false,
             role: UserRole::User,
+            roles: None,
+            permissions: None,
         };
         
         self.create_user(&user).await?;
@@ -85,6 +87,8 @@ impl UserRepository {
             email_verified: false,
             phone_verified: false,
             role: UserRole::User,
+            roles: None,
+            permissions: None,
         };
         
         self.create_user(&user).await?;
@@ -189,6 +193,8 @@ impl UserRepository {
                 "Guest" => UserRole::Guest,
                 _ => UserRole::User,
             },
+            roles: None,
+            permissions: None,
         }))
     }
     
@@ -221,6 +227,8 @@ impl UserRepository {
                 "Guest" => UserRole::Guest,
                 _ => UserRole::User,
             },
+            roles: None,
+            permissions: None,
         }))
     }
     
@@ -253,6 +261,8 @@ impl UserRepository {
                 "Guest" => UserRole::Guest,
                 _ => UserRole::User,
             },
+            roles: None,
+            permissions: None,
         }))
     }
     
@@ -285,6 +295,8 @@ impl UserRepository {
                 "Guest" => UserRole::Guest,
                 _ => UserRole::User,
             },
+            roles: None,
+            permissions: None,
         }))
     }
     

@@ -32,7 +32,7 @@ COPY . .
 ENV SQLX_OFFLINE=true
 RUN SQLX_OFFLINE=true cargo build --release
 
-FROM rust:latest
+FROM rust:1.85.0-slim
 
 # Install runtime dependencies
 RUN apt-get update && \

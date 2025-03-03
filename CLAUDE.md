@@ -1,10 +1,13 @@
 # ELDRIN PROJECT GUIDE
 
 ## Build/Test Commands
-- Build: `SQLX_OFFLINE=false cargo build`
+- Build: `SQLX_OFFLINE=true cargo build`
 - Run: `cargo run`
-- Test all: `cargo test`
-- Test single: `cargo test test_name`
+- Test all: `SQLX_OFFLINE=true cargo test`
+- Test single: `SQLX_OFFLINE=true cargo test test_name`
+- Database prepare: `cargo sqlx prepare --workspace`
+- Start services: `./start.sh`
+- API tests: `./tools/test_api.sh`
 - Lint: `cargo clippy`
 - Format: `cargo fmt`
 
@@ -12,25 +15,19 @@
 - **Architecture**: Follow modular design with clear separation between API, service, and repository layers
 - **Imports**: Group imports by source (std, external, internal)
 - **Naming**: Use snake_case for variables/functions, CamelCase for types/traits
-- **Error Handling**: Use Result<T, E> with proper error propagation
+- **Error Handling**: Use thiserror for custom error types with proper error propagation
 - **Types**: Prefer strong typing and leverage Rust's type system
 - **Documentation**: Document public APIs with rustdoc comments
 - **Testing**: Write unit tests for core functionality and integration tests for API endpoints
-- **Module Structure**: Place modules in the `addons/` directory with proper manifest files
-- **Dependencies**: Clearly define module dependencies in manifests
-- **Database**: Use Diesel or SQLx for database interactions
+- **Async**: Use async/await with tokio runtime for asynchronous operations
+- **Module Structure**: Place modules in the `modules/` directory with proper manifest files
+- **Database**: Use SQLx for database interactions with PostgreSQL
 
 ## OAuth Configuration
-### Google Auth Setup
-1. Go to Google Cloud Console and create a project
-2. Navigate to "APIs & Services" > "Credentials"
-3. Click "Create Credentials" > "OAuth client ID"
-4. Set up the consent screen with app name and contact info
-5. Create a Web application type OAuth client
-6. Add authorized redirect URIs: `http://localhost:3000/auth/google/callback`
-7. Copy the Client ID and Client Secret to your .env file:
+### Provider Setup
+1. Configure OAuth providers in environment variables:
    ```
-   GOOGLE_CLIENT_ID=your_client_id
-   GOOGLE_CLIENT_SECRET=your_client_secret
-   GOOGLE_REDIRECT_URI=http://localhost:3000/auth/google/callback
+   OAUTH_CLIENT_ID=your_client_id
+   OAUTH_CLIENT_SECRET=your_client_secret
+   OAUTH_REDIRECT_URI=http://localhost:3000/auth/callback
    ```

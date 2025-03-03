@@ -35,33 +35,33 @@ services:
     networks:
       - eldrin-network
 
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: eldrin-api
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: postgres://eldrin:eldrin_password@postgres:5432/eldrin_dev
-      SERVER_HOST: 0.0.0.0
-      SERVER_PORT: 3000
-      RUST_LOG: eldrin_core=debug,tower_http=debug,axum=debug
-      GITHUB_CLIENT_ID: "Ov23liIEe8Q5DMHCweJE"
-      GITHUB_CLIENT_SECRET: "1191e6d7e015fbe688474ed596214af482512dcc"
-      GITHUB_REDIRECT_URI: "http://localhost:3000/auth/github/callback"
-      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
-      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
-      GOOGLE_REDIRECT_URI: "http://localhost:3000/auth/google/callback"
-      FRONTEND_URL: "http://localhost:4200"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - eldrin-network
-    volumes:
-      - ./modules:/app/modules
-    command: ["/app/eldrin-core"]
+#  api:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: eldrin-api
+#    ports:
+#      - "3000:3000"
+#    environment:
+#      DATABASE_URL: postgres://eldrin:eldrin_password@postgres:5432/eldrin_dev
+#      SERVER_HOST: 0.0.0.0
+#      SERVER_PORT: 3000
+#      RUST_LOG: eldrin_core=debug,tower_http=debug,axum=debug
+#      GITHUB_CLIENT_ID: "Ov23liIEe8Q5DMHCweJE"
+#      GITHUB_CLIENT_SECRET: "1191e6d7e015fbe688474ed596214af482512dcc"
+#      GITHUB_REDIRECT_URI: "http://localhost:3000/auth/github/callback"
+#      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
+#      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
+#      GOOGLE_REDIRECT_URI: "http://localhost:3000/auth/google/callback"
+#      FRONTEND_URL: "http://localhost:4200"
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#    networks:
+#      - eldrin-network
+#    volumes:
+#      - ./modules:/app/modules
+#    command: ["/app/eldrin-core"]
 
   # You can add additional services here in the future:
   # - Redis for caching

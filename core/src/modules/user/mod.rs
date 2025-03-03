@@ -1,11 +1,11 @@
 pub mod models;
-mod repository;
-mod service;
+pub mod repository;
+pub mod service;
 pub mod handlers;
 pub mod auth;
 
-pub use models::{User, UserRole, UserProfile};
-pub use service::UserService;
+pub use models::{User, UserRole, UserProfile, Permission, Role};
+pub use service::{UserService, AuthorizationService};
 pub use handlers::oauth_callback_handler;
 
 /// Initialize the user module

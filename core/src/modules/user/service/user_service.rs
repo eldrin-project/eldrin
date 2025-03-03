@@ -253,6 +253,8 @@ impl UserService {
             email_verified: false,
             phone_verified: false,
             role: UserRole::User,
+            roles: None,
+            permissions: None,
         };
 
         // Create the user in the database
