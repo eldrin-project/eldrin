@@ -23,7 +23,7 @@ jobs:
       - name: Install SQLx CLI
         run: cargo install sqlx-cli
       - name: Prepare SQLx cache
-        run: cargo sqlx prepare --workspace -- --lib
+        run: cargo sqlx prepare --workspace
         working-directory: ${{ github.workspace }}
       - name: Set SQLX_OFFLINE
         run: echo "SQLX_OFFLINE=true" >> $GITHUB_ENV
