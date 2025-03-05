@@ -22,11 +22,11 @@ jobs:
           toolchain: stable
       - name: Install SQLx CLI
         run: cargo install sqlx-cli
-      - name: Prepare SQLx cache
-        run: cargo sqlx prepare --workspace
-        working-directory: ${{ github.workspace }}
-      - name: Set SQLX_OFFLINE
-        run: echo "SQLX_OFFLINE=true" >> $GITHUB_ENV
+#      - name: Prepare SQLx cache
+#        run: cargo sqlx prepare --workspace
+#        working-directory: ${{ github.workspace }}
+#      - name: Set SQLX_OFFLINE
+#        run: echo "SQLX_OFFLINE=true" >> $GITHUB_ENV
       - name: Build
         run: SQLX_OFFLINE=true cargo build --verbose
       - name: Run tests
