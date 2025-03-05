@@ -219,7 +219,7 @@ pub fn user_routes(pool: PgPool) -> Router {
 
 /// Register a new user with email and password
 async fn register(
-    State((service, _)): State<(Arc<UserService>, Arc<AuthorizationService>)>,
+    State((service, auth_service)): State<(Arc<UserService>, Arc<AuthorizationService>)>,
     Json(req): Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, UserError> {
     let user = service.register_email_password(
@@ -231,10 +231,16 @@ async fn register(
     // Generate JWT tokens
     let tokens = service.generate_auth_tokens(&user)?;
     
+    // Get the user with roles
+    let user_with_roles = match auth_service.get_user_with_roles_and_permissions(user.id).await {
+        Ok(Some(user_with_roles)) => user_with_roles,
+        _ => user, // Fallback to original user if roles can't be fetched
+    };
+    
     Ok((
         StatusCode::CREATED,
         Json(AuthResponse { 
-            user, 
+            user: user_with_roles, 
             access_token: tokens.access_token,
             refresh_token: tokens.refresh_token,
             expires_in: tokens.expires_in,
@@ -245,7 +251,7 @@ async fn register(
 
 /// Login with email and password
 async fn login(
-    State((service, _)): State<(Arc<UserService>, Arc<AuthorizationService>)>,
+    State((service, auth_service)): State<(Arc<UserService>, Arc<AuthorizationService>)>,
     Json(req): Json<LoginRequest>,
 ) -> Result<impl IntoResponse, UserError> {
     let (user, tokens) = service.authenticate_email_password(
@@ -253,8 +259,14 @@ async fn login(
         &req.password,
     ).await?;
     
+    // Get the user with roles
+    let user_with_roles = match auth_service.get_user_with_roles_and_permissions(user.id).await {
+        Ok(Some(user_with_roles)) => user_with_roles,
+        _ => user, // Fallback to original user if roles can't be fetched
+    };
+    
     Ok(Json(AuthResponse { 
-        user, 
+        user: user_with_roles, 
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expires_in: tokens.expires_in,
@@ -278,13 +290,19 @@ async fn magic_link(
 
 /// Verify a magic link token
 async fn verify_magic_link(
-    State((service, _)): State<(Arc<UserService>, Arc<AuthorizationService>)>,
+    State((service, auth_service)): State<(Arc<UserService>, Arc<AuthorizationService>)>,
     Json(req): Json<VerifyMagicLinkRequest>,
 ) -> Result<impl IntoResponse, UserError> {
     let (user, tokens) = service.verify_magic_link(&req.token).await?;
     
+    // Get the user with roles
+    let user_with_roles = match auth_service.get_user_with_roles_and_permissions(user.id).await {
+        Ok(Some(user_with_roles)) => user_with_roles,
+        _ => user, // Fallback to original user if roles can't be fetched
+    };
+    
     Ok(Json(AuthResponse { 
-        user, 
+        user: user_with_roles, 
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expires_in: tokens.expires_in,
@@ -304,13 +322,19 @@ async fn sms_code(
 
 /// Verify an SMS code
 async fn verify_sms_code(
-    State((service, _)): State<(Arc<UserService>, Arc<AuthorizationService>)>,
+    State((service, auth_service)): State<(Arc<UserService>, Arc<AuthorizationService>)>,
     Json(req): Json<VerifySmsCodeRequest>,
 ) -> Result<impl IntoResponse, UserError> {
     let (user, tokens) = service.verify_sms_code(&req.code).await?;
     
+    // Get the user with roles
+    let user_with_roles = match auth_service.get_user_with_roles_and_permissions(user.id).await {
+        Ok(Some(user_with_roles)) => user_with_roles,
+        _ => user, // Fallback to original user if roles can't be fetched
+    };
+    
     Ok(Json(AuthResponse { 
-        user, 
+        user: user_with_roles, 
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expires_in: tokens.expires_in,
@@ -365,7 +389,7 @@ async fn oauth_authorize(
 
 /// Handle OAuth callback - used within user routes
 async fn oauth_callback(
-    State((service, _)): State<(Arc<UserService>, Arc<AuthorizationService>)>,
+    State((service, auth_service)): State<(Arc<UserService>, Arc<AuthorizationService>)>,
     Path(provider): Path<String>,
     Query(params): Query<std::collections::HashMap<String, String>>,
 ) -> Result<impl IntoResponse, UserError> {
@@ -438,15 +462,27 @@ async fn oauth_callback(
     // Get frontend URL from environment variables or use default
     let frontend_url = std::env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:4200".to_string());
     
+    // Get the user with roles
+    let user_with_roles = match auth_service.get_user_with_roles_and_permissions(user.id).await {
+        Ok(Some(user_with_roles)) => user_with_roles,
+        _ => user.clone(), // Fallback to original user if roles can't be fetched
+    };
+    
+    // Get roles as a comma-separated list if available
+    let roles_param = user_with_roles.roles.as_ref()
+        .map(|roles| roles.iter().map(|r| r.name.clone()).collect::<Vec<_>>().join(","))
+        .unwrap_or_default();
+        
     // Create auth-callback route URL with tokens as parameters
     let auth_callback_url = format!(
-        "{}/auth-callback?access_token={}&refresh_token={}&user_id={}&email={}&username={}",
+        "{}/auth-callback?access_token={}&refresh_token={}&user_id={}&email={}&username={}&roles={}",
         frontend_url,
         tokens.access_token,
         tokens.refresh_token,
         user.id,
         user.email.as_deref().unwrap_or(""),
-        user.username
+        user.username,
+        roles_param
     );
     
     tracing::info!("Redirecting to frontend auth-callback route");
@@ -478,7 +514,7 @@ pub async fn oauth_callback_handler(
         }
     };
     
-    let service = UserService::new(pool);
+    let service = UserService::new(pool.clone());
     
     // Parse provider
     let oauth_provider = match provider.to_lowercase().as_str() {
@@ -523,15 +559,28 @@ pub async fn oauth_callback_handler(
             // Get frontend URL from environment variables or use default
             let frontend_url = std::env::var("FRONTEND_URL").unwrap_or_else(|_| "http://localhost:4200".to_string());
             
+            // Get the user with roles
+            let auth_service = AuthorizationService::new(pool.clone());
+            let user_with_roles = match auth_service.get_user_with_roles_and_permissions(user.id).await {
+                Ok(Some(user_with_roles)) => user_with_roles,
+                _ => user.clone(), // Fallback to original user if roles can't be fetched
+            };
+            
+            // Get roles as a comma-separated list if available
+            let roles_param = user_with_roles.roles.as_ref()
+                .map(|roles| roles.iter().map(|r| r.name.clone()).collect::<Vec<_>>().join(","))
+                .unwrap_or_default();
+                
             // Create auth-callback route URL with tokens as parameters
             let auth_callback_url = format!(
-                "{}/auth-callback?access_token={}&refresh_token={}&user_id={}&email={}&username={}",
+                "{}/auth-callback?access_token={}&refresh_token={}&user_id={}&email={}&username={}&roles={}",
                 frontend_url,
                 tokens.access_token,
                 tokens.refresh_token,
                 user.id,
                 user.email.as_deref().unwrap_or(""),
-                user.username
+                user.username,
+                roles_param
             );
             
             tracing::info!("Redirecting to frontend auth-callback route");
