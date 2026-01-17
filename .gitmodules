@@ -1,0 +1,39 @@
+[submodule "eldrin-core"]
+	path = eldrin-core
+	url = git@github.com:eldrin-project/eldrin-core.git
+[submodule "eldrin-app-core"]
+	path = eldrin-app-core
+	url = git@github.com:eldrin-project/eldrin-app-core.git
+[submodule "eldrin-invoicing"]
+	path = eldrin-invoicing
+	url = git@github.com:eldrin-project/eldrin-invoicing.git
+[submodule "eldrin-catalog"]
+	path = eldrin-catalog
+	url = git@github.com:eldrin-project/eldrin-catalog.git
+[submodule "eldrin-crm"]
+	path = eldrin-crm
+	url = git@github.com:eldrin-project/eldrin-crm.git
+[submodule "eldrin-website"]
+	path = eldrin-website
+	url = git@github.com:eldrin-project/eldrin-website.git
+[submodule "eldrin-docs"]
+	path = eldrin-docs
+	url = git@github.com:eldrin-project/eldrin-docs.git
+[submodule "eldrin-templates"]
+	path = eldrin-templates
+	url = git@github.com:eldrin-project/eldrin-templates.git
+[submodule "eldrin-marketplace-dist"]
+	path = eldrin-marketplace-dist
+	url = git@github.com:eldrin-project/eldrin-marketplace-dist.git
+[submodule "eldrin-app-angular"]
+	path = eldrin-app-angular
+	url = git@github.com:eldrin-project/eldrin-app-angular.git
+[submodule "eldrin-app-react"]
+	path = eldrin-app-react
+	url = git@github.com:eldrin-project/eldrin-app-react.git
+[submodule "eldrin-app-svelte"]
+	path = eldrin-app-svelte
+	url = git@github.com:eldrin-project/eldrin-app-svelte.git
+[submodule "eldrin-app-vue"]
+	path = eldrin-app-vue
+	url = git@github.com:eldrin-project/eldrin-app-vue.git
