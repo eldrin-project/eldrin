@@ -1,0 +1,14 @@
+{
+  "id": "catalog-attributes-system",
+  "category": "Core",
+  "title": "Product Attributes System",
+  "description": "Implement flexible attribute system supporting different data types (text, number, boolean, select) with category-specific attribute templates.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [
+    "catalog-categories-tree"
+  ],
+  "createdAt": "2026-01-17T05:35:03.925Z",
+  "updatedAt": "2026-01-17T05:35:03.925Z"
+}

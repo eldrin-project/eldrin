@@ -1,0 +1,14 @@
+{
+  "id": "todo-app-angular-components",
+  "category": "UI",
+  "title": "Angular Todo Components",
+  "description": "Build Angular components for todo list, create form, edit dialog, and delete confirmation. Uses Angular Material or custom components matching eldrin design system.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "todo-app-angular-services"
+  ],
+  "createdAt": "2026-01-17T05:35:03.920Z",
+  "updatedAt": "2026-01-17T05:35:03.920Z"
+}

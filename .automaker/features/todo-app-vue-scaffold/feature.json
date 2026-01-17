@@ -1,0 +1,12 @@
+{
+  "id": "todo-app-vue-scaffold",
+  "category": "Template Applications",
+  "title": "Vue Todo App Scaffold",
+  "description": "Create Vue 3 todo application using eldrin-app-vue adapter with Composition API, composables, and single-spa integration. Provides reference implementation for Vue developers.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.920Z",
+  "updatedAt": "2026-01-17T05:35:03.920Z"
+}

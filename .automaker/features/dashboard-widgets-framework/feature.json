@@ -1,0 +1,12 @@
+{
+  "id": "dashboard-widgets-framework",
+  "category": "Core",
+  "title": "Dashboard Widgets Framework",
+  "description": "Implement extensible widget system allowing apps to register dashboard widgets with standard size grids, drag-and-drop positioning, and state persistence.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.928Z",
+  "updatedAt": "2026-01-17T05:35:03.928Z"
+}

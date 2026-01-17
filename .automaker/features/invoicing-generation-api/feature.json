@@ -1,0 +1,14 @@
+{
+  "id": "invoicing-generation-api",
+  "category": "API",
+  "title": "Invoice Generation API",
+  "description": "Implement API for creating invoices with line items, tax calculation, discount application, and sequential numbering. Includes PDF generation worker.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [
+    "invoicing-database-schema"
+  ],
+  "createdAt": "2026-01-17T05:35:03.925Z",
+  "updatedAt": "2026-01-17T05:35:03.925Z"
+}

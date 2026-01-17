@@ -1,0 +1,14 @@
+{
+  "id": "session-viewer-ui",
+  "category": "UI",
+  "title": "Active Sessions Viewer",
+  "description": "Create interface showing active sessions with device info, location, last activity, and ability to revoke individual sessions.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "simple",
+  "dependencies": [
+    "session-management"
+  ],
+  "createdAt": "2026-01-17T05:35:03.936Z",
+  "updatedAt": "2026-01-17T05:35:03.936Z"
+}

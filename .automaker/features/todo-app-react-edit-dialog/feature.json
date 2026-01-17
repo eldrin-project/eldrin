@@ -1,0 +1,14 @@
+{
+  "id": "todo-app-react-edit-dialog",
+  "category": "UI",
+  "title": "Todo Edit Dialog",
+  "description": "Implement modal dialog for editing existing todos using Radix UI Dialog primitive. Supports inline editing with optimistic updates and error handling.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "todo-app-react-create-form"
+  ],
+  "createdAt": "2026-01-17T05:35:03.918Z",
+  "updatedAt": "2026-01-17T05:35:03.918Z"
+}

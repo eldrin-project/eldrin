@@ -1,0 +1,14 @@
+{
+  "id": "catalog-database-schema",
+  "category": "Database",
+  "title": "Catalog Database Schema",
+  "description": "Define migrations for products, categories, attributes, variants, pricing tiers, and inventory links. Implements flexible attribute system for product variations.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [
+    "catalog-app-scaffold"
+  ],
+  "createdAt": "2026-01-17T05:35:03.924Z",
+  "updatedAt": "2026-01-17T05:35:03.924Z"
+}

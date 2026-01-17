@@ -1,0 +1,12 @@
+{
+  "id": "pwa-support",
+  "category": "Core",
+  "title": "Progressive Web App Support",
+  "description": "Add PWA capabilities with service worker, offline support, install prompt, and app manifest for installable experience.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.943Z",
+  "updatedAt": "2026-01-17T05:35:03.943Z"
+}

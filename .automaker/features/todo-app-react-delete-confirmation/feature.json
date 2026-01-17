@@ -1,0 +1,14 @@
+{
+  "id": "todo-app-react-delete-confirmation",
+  "category": "UI",
+  "title": "Todo Delete Confirmation",
+  "description": "Add confirmation dialog for deleting todos with accessibility support and loading states. Prevents accidental deletions and provides undo feedback.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "simple",
+  "dependencies": [
+    "todo-app-react-edit-dialog"
+  ],
+  "createdAt": "2026-01-17T05:35:03.919Z",
+  "updatedAt": "2026-01-17T05:35:03.919Z"
+}

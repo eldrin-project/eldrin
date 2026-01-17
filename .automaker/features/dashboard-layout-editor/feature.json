@@ -1,0 +1,14 @@
+{
+  "id": "dashboard-layout-editor",
+  "category": "UI",
+  "title": "Dashboard Layout Editor",
+  "description": "Build drag-and-drop dashboard layout editor with grid snapping, responsive breakpoints, and layout templates. Saves user preferences.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [
+    "dashboard-widget-registry"
+  ],
+  "createdAt": "2026-01-17T05:35:03.928Z",
+  "updatedAt": "2026-01-17T05:35:03.928Z"
+}

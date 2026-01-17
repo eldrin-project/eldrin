@@ -1,0 +1,15 @@
+{
+  "id": "docs-site-scaffold",
+  "category": "Documentation",
+  "title": "Documentation Site Scaffold",
+  "description": "Set up Astro-based documentation site (eldrin-docs) with content collections, navigation, search, and responsive layout. Uses MDX for rich content.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.926Z",
+  "updatedAt": "2026-01-17T06:26:43.469Z",
+  "branchName": "main",
+  "descriptionHistory": [],
+  "startedAt": "2026-01-17T06:26:36.871Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "crm-opportunities-tracking",
+  "category": "UI",
+  "title": "CRM Opportunities Tracking",
+  "description": "Build opportunity management with sales stage tracking, revenue forecasting, probability weighting, and win/loss analysis.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [
+    "crm-leads-pipeline"
+  ],
+  "createdAt": "2026-01-17T05:35:03.923Z",
+  "updatedAt": "2026-01-17T05:35:03.923Z"
+}

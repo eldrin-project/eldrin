@@ -1,0 +1,12 @@
+{
+  "id": "catalog-app-scaffold",
+  "category": "Business Applications",
+  "title": "Product Catalog Scaffold",
+  "description": "Create product catalog application for managing SKUs, categories, attributes, and pricing. Supports multi-level categorization and variant products.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.924Z",
+  "updatedAt": "2026-01-17T05:35:03.924Z"
+}

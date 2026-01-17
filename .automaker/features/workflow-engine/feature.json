@@ -1,0 +1,12 @@
+{
+  "id": "workflow-engine",
+  "category": "Core",
+  "title": "Workflow Automation Engine",
+  "description": "Implement workflow engine supporting multi-step processes with conditional branching, parallel execution, and human approval steps.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "complex",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.943Z",
+  "updatedAt": "2026-01-17T05:35:03.943Z"
+}

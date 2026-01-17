@@ -1,0 +1,14 @@
+{
+  "id": "app-analytics-dashboard",
+  "category": "UI",
+  "title": "Analytics Dashboard",
+  "description": "Build analytics dashboard for developers and admins showing usage trends, user engagement, and performance metrics with charts.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "app-analytics-tracking"
+  ],
+  "createdAt": "2026-01-17T05:35:03.938Z",
+  "updatedAt": "2026-01-17T05:35:03.938Z"
+}

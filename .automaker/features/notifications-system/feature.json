@@ -1,0 +1,12 @@
+{
+  "id": "notifications-system",
+  "category": "Core",
+  "title": "Notification System",
+  "description": "Implement notification system with in-app notifications, email delivery, and webhook support. Apps can emit notifications through standardized API.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.930Z",
+  "updatedAt": "2026-01-17T05:35:03.930Z"
+}

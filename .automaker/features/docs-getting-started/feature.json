@@ -1,0 +1,14 @@
+{
+  "id": "docs-getting-started",
+  "category": "Documentation",
+  "title": "Getting Started Guide",
+  "description": "Write comprehensive getting started documentation covering installation, initial setup, first app deployment, and basic configuration.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "simple",
+  "dependencies": [
+    "docs-site-scaffold"
+  ],
+  "createdAt": "2026-01-17T05:35:03.926Z",
+  "updatedAt": "2026-01-17T05:35:03.926Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "todo-app-react-api-routes",
+  "category": "API",
+  "title": "Todo App API Routes",
+  "description": "Implement Hono-based API routes for CRUD operations on todos with permission middleware integration. Supports create, read, update, delete, and list operations.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "todo-app-react-database-schema"
+  ],
+  "createdAt": "2026-01-17T05:35:03.918Z",
+  "updatedAt": "2026-01-17T05:35:03.918Z"
+}

@@ -1,0 +1,203 @@
+{
+  "category": "Project Chores",
+  "description": "Implement Git Submodules Architecture for Multi-Repository Project\n\nRestructure the project to use a parent repository with Git submodules, consolidating multiple independent repositories into a single orchestrated project structure.\n\nRequirements:\n- Create a new parent repository that will serve as the project root\n- Identify all existing repositories that should become submodules\n- Add each repository as a Git submodule in appropriate directory structure\n- Define clear naming conventions and directory hierarchy for submodules\n- Document submodule initialization and update procedures for team members\n- Create or update root-level README with project overview and submodule map\n- Add initialization script to automate cloning and setup of all submodules\n- Configure .gitmodules file with correct paths and remote URLs\n- Establish branching strategy across parent and submodule repositories\n- Update CI/CD pipelines to handle submodule updates if applicable\n\nConsiderations:\n- Determine whether to track specific commits or branches in submodules\n- Plan migration path for existing local development environments\n- Verify all team members have appropriate access to all submodule repositories\n- Consider alternative approaches (monorepo, Git subtrees) if submodules limitations are problematic\n- Document common submodule operations (updating, pulling changes, pushing to submodules)",
+  "title": "Implement Git submodules for multi-repository consolidation",
+  "images": [],
+  "imagePaths": [],
+  "textFilePaths": [],
+  "skipTests": true,
+  "model": "opus",
+  "thinkingLevel": "none",
+  "reasoningEffort": "none",
+  "priority": 1,
+  "planningMode": "full",
+  "requirePlanApproval": true,
+  "dependencies": [],
+  "workMode": "current",
+  "titleGenerating": false,
+  "status": "waiting_approval",
+  "id": "feature-1768628837105-8kctt6qz3",
+  "descriptionHistory": [
+    {
+      "description": "Implement Git Submodules Architecture for Multi-Repository Project\n\nRestructure the project to use a parent repository with Git submodules, consolidating multiple independent repositories into a single orchestrated project structure.\n\nRequirements:\n- Create a new parent repository that will serve as the project root\n- Identify all existing repositories that should become submodules\n- Add each repository as a Git submodule in appropriate directory structure\n- Define clear naming conventions and directory hierarchy for submodules\n- Document submodule initialization and update procedures for team members\n- Create or update root-level README with project overview and submodule map\n- Add initialization script to automate cloning and setup of all submodules\n- Configure .gitmodules file with correct paths and remote URLs\n- Establish branching strategy across parent and submodule repositories\n- Update CI/CD pipelines to handle submodule updates if applicable\n\nConsiderations:\n- Determine whether to track specific commits or branches in submodules\n- Plan migration path for existing local development environments\n- Verify all team members have appropriate access to all submodule repositories\n- Consider alternative approaches (monorepo, Git subtrees) if submodules limitations are problematic\n- Document common submodule operations (updating, pulling changes, pushing to submodules)",
+      "timestamp": "2026-01-17T05:47:17.309Z",
+      "source": "initial"
+    }
+  ],
+  "startedAt": "2026-01-17T05:50:05.183Z",
+  "updatedAt": "2026-01-17T06:29:51.539Z",
+  "planSpec": {
+    "status": "approved",
+    "version": 1,
+    "reviewedByUser": true,
+    "generatedAt": "2026-01-17T05:52:09.793Z",
+    "tasks": [
+      {
+        "id": "T001",
+        "description": "Create comprehensive .gitignore for parent repository",
+        "filePath": ".gitignore",
+        "phase": "Phase 1: Foundation - Parent Repository Setup",
+        "status": "pending"
+      },
+      {
+        "id": "T002",
+        "description": "Configure parent repository remote (git@github.com:eldrin-project/eldrin.git)",
+        "filePath": ".git/config",
+        "phase": "Phase 1: Foundation - Parent Repository Setup",
+        "status": "pending"
+      },
+      {
+        "id": "T003",
+        "description": "Create project README with architecture overview",
+        "filePath": "README.md",
+        "phase": "Phase 1: Foundation - Parent Repository Setup",
+        "status": "pending"
+      },
+      {
+        "id": "T004",
+        "description": "Remove nested .git directories from Git tracking (deinit existing)",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T005",
+        "description": "Add eldrin-core as submodule",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T006",
+        "description": "Add eldrin-app-core as submodule",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T007",
+        "description": "Add eldrin-invoicing as submodule",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T008",
+        "description": "Add eldrin-catalog as submodule",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T009",
+        "description": "Add eldrin-crm as submodule",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T010",
+        "description": "Add eldrin-website as submodule",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T011",
+        "description": "Add eldrin-docs as submodule",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T012",
+        "description": "Add eldrin-templates as submodule",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T013",
+        "description": "Add eldrin-marketplace-dist as submodule",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T014",
+        "description": "Add eldrin-app-angular as submodule",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T015",
+        "description": "Add eldrin-app-react as submodule",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T016",
+        "description": "Add eldrin-app-svelte as submodule",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T017",
+        "description": "Add eldrin-app-vue as submodule",
+        "filePath": ".gitmodules",
+        "phase": "Phase 2: Submodule Configuration",
+        "status": "pending"
+      },
+      {
+        "id": "T018",
+        "description": "Create initialization script for new developers",
+        "filePath": "scripts/init.sh",
+        "phase": "Phase 3: Automation Scripts",
+        "status": "pending"
+      },
+      {
+        "id": "T019",
+        "description": "Create submodule update helper script",
+        "filePath": "scripts/update-submodules.sh",
+        "phase": "Phase 3: Automation Scripts",
+        "status": "pending"
+      },
+      {
+        "id": "T020",
+        "description": "Create status check script for all submodules",
+        "filePath": "scripts/status.sh",
+        "phase": "Phase 3: Automation Scripts",
+        "status": "pending"
+      },
+      {
+        "id": "T021",
+        "description": "Document submodule operations in README",
+        "filePath": "README.md",
+        "phase": "Phase 4: Documentation",
+        "status": "pending"
+      },
+      {
+        "id": "T022",
+        "description": "Create CONTRIBUTING.md with submodule workflow",
+        "filePath": "CONTRIBUTING.md",
+        "phase": "Phase 4: Documentation",
+        "status": "pending"
+      },
+      {
+        "id": "T023",
+        "description": "Document branching strategy across repos",
+        "filePath": "docs/BRANCHING.md",
+        "phase": "Phase 4: Documentation",
+        "status": "pending"
+      }
+    ],
+    "tasksTotal": 23,
+    "tasksCompleted": 23,
+    "approvedAt": "2026-01-17T06:05:11.324Z",
+    "currentTaskId": "T023"
+  },
+  "justFinishedAt": "2026-01-17T06:29:51.539Z"
+}

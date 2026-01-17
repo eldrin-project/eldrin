@@ -1,0 +1,12 @@
+{
+  "id": "email-templates",
+  "category": "Core",
+  "title": "Email Template System",
+  "description": "Implement email template engine with variable interpolation, HTML/plain text rendering, and brand customization. Supports transactional emails.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.937Z",
+  "updatedAt": "2026-01-17T05:35:03.937Z"
+}

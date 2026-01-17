@@ -1,0 +1,14 @@
+{
+  "id": "audit-log-api",
+  "category": "API",
+  "title": "Audit Log API",
+  "description": "Create API for querying audit logs with filtering by user, action type, date range, and entity. Supports export to CSV/JSON.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "audit-log-system"
+  ],
+  "createdAt": "2026-01-17T05:35:03.931Z",
+  "updatedAt": "2026-01-17T05:35:03.931Z"
+}

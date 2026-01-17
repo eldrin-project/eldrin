@@ -1,0 +1,14 @@
+{
+  "id": "dashboard-widget-registry",
+  "category": "Core",
+  "title": "Widget Registry Service",
+  "description": "Create widget registry for discovering and loading widgets from installed apps. Manages widget metadata, permissions, and lazy loading.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "dashboard-widgets-framework"
+  ],
+  "createdAt": "2026-01-17T05:35:03.928Z",
+  "updatedAt": "2026-01-17T05:35:03.928Z"
+}

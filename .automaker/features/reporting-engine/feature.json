@@ -1,0 +1,12 @@
+{
+  "id": "reporting-engine",
+  "category": "Core",
+  "title": "Reporting Engine",
+  "description": "Implement reporting engine supporting custom SQL queries, scheduled reports, parameterized filters, and export formats (PDF, Excel, CSV).",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "complex",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.932Z",
+  "updatedAt": "2026-01-17T05:35:03.932Z"
+}

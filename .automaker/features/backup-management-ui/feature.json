@@ -1,0 +1,14 @@
+{
+  "id": "backup-management-ui",
+  "category": "UI",
+  "title": "Backup Management UI",
+  "description": "Build interface for configuring backup schedules, viewing backup history, initiating manual backups, and restoring from snapshots.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "backup-restore-system"
+  ],
+  "createdAt": "2026-01-17T05:35:03.940Z",
+  "updatedAt": "2026-01-17T05:35:03.940Z"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "todo-app-angular-scaffold",
+  "category": "Template Applications",
+  "title": "Angular Todo App Scaffold",
+  "description": "Create Angular todo application using eldrin-app-angular adapter with proper module structure, dependency injection, and single-spa lifecycle. Mirrors React todo app functionality.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.919Z",
+  "updatedAt": "2026-01-17T05:35:03.919Z"
+}

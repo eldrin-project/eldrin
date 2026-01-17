@@ -1,0 +1,14 @@
+{
+  "id": "catalog-categories-tree",
+  "category": "UI",
+  "title": "Category Hierarchy Tree",
+  "description": "Create hierarchical category tree with drag-and-drop reordering, nested categories, and product assignment. Uses recursive components for unlimited depth.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "catalog-products-ui"
+  ],
+  "createdAt": "2026-01-17T05:35:03.924Z",
+  "updatedAt": "2026-01-17T05:35:03.924Z"
+}

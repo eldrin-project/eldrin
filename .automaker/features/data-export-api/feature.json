@@ -1,0 +1,12 @@
+{
+  "id": "data-export-api",
+  "category": "API",
+  "title": "Data Export API",
+  "description": "Create export API supporting various formats (CSV, Excel, JSON, XML) with streaming for large datasets and background job processing.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.934Z",
+  "updatedAt": "2026-01-17T05:35:03.934Z"
+}

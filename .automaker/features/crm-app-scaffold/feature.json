@@ -1,0 +1,12 @@
+{
+  "id": "crm-app-scaffold",
+  "category": "Business Applications",
+  "title": "CRM Application Scaffold",
+  "description": "Create React-based CRM application structure for managing customers, contacts, leads, and opportunities. Includes navigation, routing, and manifest setup.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.921Z",
+  "updatedAt": "2026-01-17T05:35:03.921Z"
+}

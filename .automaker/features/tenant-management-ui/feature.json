@@ -1,0 +1,14 @@
+{
+  "id": "tenant-management-ui",
+  "category": "UI",
+  "title": "Tenant Management Interface",
+  "description": "Create super-admin interface for managing tenants with provisioning, resource allocation, billing integration, and usage monitoring.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "moderate",
+  "dependencies": [
+    "multi-tenancy-support"
+  ],
+  "createdAt": "2026-01-17T05:35:03.941Z",
+  "updatedAt": "2026-01-17T05:35:03.941Z"
+}

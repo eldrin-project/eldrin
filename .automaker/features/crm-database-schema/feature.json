@@ -1,0 +1,14 @@
+{
+  "id": "crm-database-schema",
+  "category": "Database",
+  "title": "CRM Database Schema",
+  "description": "Define migrations for CRM entities including companies, contacts, leads, opportunities, activities, and relationships. Implements normalized schema with foreign keys.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [
+    "crm-app-scaffold"
+  ],
+  "createdAt": "2026-01-17T05:35:03.922Z",
+  "updatedAt": "2026-01-17T05:35:03.922Z"
+}

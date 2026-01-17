@@ -1,0 +1,14 @@
+{
+  "id": "docs-api-reference",
+  "category": "Documentation",
+  "title": "API Reference Documentation",
+  "description": "Generate comprehensive API reference from TypeScript declarations for all packages (eldrin-app-core, framework adapters, etc.) with examples.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "docs-app-development-guide"
+  ],
+  "createdAt": "2026-01-17T05:35:03.927Z",
+  "updatedAt": "2026-01-17T05:35:03.927Z"
+}

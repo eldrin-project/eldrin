@@ -1,0 +1,14 @@
+{
+  "id": "search-api-endpoints",
+  "category": "API",
+  "title": "Search API Endpoints",
+  "description": "Create search API supporting full-text search, filtering by app/entity type, relevance ranking, and result pagination. Includes fuzzy matching.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "search-global-index"
+  ],
+  "createdAt": "2026-01-17T05:35:03.930Z",
+  "updatedAt": "2026-01-17T05:35:03.930Z"
+}

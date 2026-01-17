@@ -1,0 +1,14 @@
+{
+  "id": "reporting-scheduled-jobs",
+  "category": "Core",
+  "title": "Scheduled Report Jobs",
+  "description": "Create scheduled job system for recurring report generation and email delivery using Cloudflare Cron Triggers. Supports daily, weekly, monthly schedules.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "moderate",
+  "dependencies": [
+    "reporting-builder-ui"
+  ],
+  "createdAt": "2026-01-17T05:35:03.933Z",
+  "updatedAt": "2026-01-17T05:35:03.933Z"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "task-management-core",
+  "category": "Core",
+  "title": "Task Management System",
+  "description": "Create task management system with assignments, due dates, priorities, dependencies, and status tracking integrated across apps.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.944Z",
+  "updatedAt": "2026-01-17T05:35:03.944Z"
+}

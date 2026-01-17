@@ -1,0 +1,14 @@
+{
+  "id": "todo-app-vue-components",
+  "category": "UI",
+  "title": "Vue Todo Components",
+  "description": "Build Vue SFC components for todo CRUD operations with reactive data binding and event handling. Uses scoped styles and eldrin design tokens.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "todo-app-vue-composables"
+  ],
+  "createdAt": "2026-01-17T05:35:03.920Z",
+  "updatedAt": "2026-01-17T05:35:03.920Z"
+}

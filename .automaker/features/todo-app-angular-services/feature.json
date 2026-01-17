@@ -1,0 +1,15 @@
+{
+  "id": "todo-app-angular-services",
+  "category": "API",
+  "title": "Angular Todo Services",
+  "description": "Implement Angular services for todo CRUD operations using RxJS observables and HttpClient. Provides reactive data streams for component consumption.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "todo-app-angular-scaffold",
+    "todo-app-react-database-schema"
+  ],
+  "createdAt": "2026-01-17T05:35:03.920Z",
+  "updatedAt": "2026-01-17T05:35:03.920Z"
+}

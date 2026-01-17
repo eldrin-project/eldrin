@@ -1,0 +1,14 @@
+{
+  "id": "catalog-products-api",
+  "category": "API",
+  "title": "Catalog Products API",
+  "description": "Implement product CRUD API with search, filtering by category/attributes, bulk operations, and image upload to R2 storage.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "catalog-database-schema"
+  ],
+  "createdAt": "2026-01-17T05:35:03.924Z",
+  "updatedAt": "2026-01-17T05:35:03.924Z"
+}

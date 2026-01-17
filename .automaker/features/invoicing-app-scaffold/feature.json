@@ -1,0 +1,12 @@
+{
+  "id": "invoicing-app-scaffold",
+  "category": "Business Applications",
+  "title": "Invoicing Application Scaffold",
+  "description": "Create invoicing application for generating quotes, invoices, credit notes, and payment tracking. Includes PDF generation and email delivery.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.925Z",
+  "updatedAt": "2026-01-17T05:35:03.925Z"
+}

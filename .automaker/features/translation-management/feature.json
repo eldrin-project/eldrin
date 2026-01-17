@@ -1,0 +1,14 @@
+{
+  "id": "translation-management",
+  "category": "UI",
+  "title": "Translation Management UI",
+  "description": "Build interface for managing translations with key organization, missing translation detection, and contributor workflow.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "moderate",
+  "dependencies": [
+    "localization-framework"
+  ],
+  "createdAt": "2026-01-17T05:35:03.942Z",
+  "updatedAt": "2026-01-17T05:35:03.942Z"
+}

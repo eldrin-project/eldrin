@@ -1,0 +1,12 @@
+{
+  "id": "chatbot-integration",
+  "category": "Core",
+  "title": "AI Chatbot Integration",
+  "description": "Integrate AI chatbot for help documentation search, guided workflows, and natural language queries using Workers AI.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "complex",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.945Z",
+  "updatedAt": "2026-01-17T05:35:03.945Z"
+}

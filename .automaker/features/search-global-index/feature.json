@@ -1,0 +1,12 @@
+{
+  "id": "search-global-index",
+  "category": "Core",
+  "title": "Global Search Index",
+  "description": "Implement platform-wide search index aggregating searchable content from all installed apps. Uses Cloudflare KV for index storage with TTL.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.929Z",
+  "updatedAt": "2026-01-17T05:35:03.929Z"
+}

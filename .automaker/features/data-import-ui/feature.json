@@ -1,0 +1,14 @@
+{
+  "id": "data-import-ui",
+  "category": "UI",
+  "title": "Data Import Interface",
+  "description": "Build wizard-based import UI guiding users through file upload, column mapping, preview, validation errors, and import execution with progress tracking.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "data-import-framework"
+  ],
+  "createdAt": "2026-01-17T05:35:03.933Z",
+  "updatedAt": "2026-01-17T05:35:03.933Z"
+}

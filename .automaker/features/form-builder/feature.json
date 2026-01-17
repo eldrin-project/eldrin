@@ -1,0 +1,12 @@
+{
+  "id": "form-builder",
+  "category": "UI",
+  "title": "Dynamic Form Builder",
+  "description": "Create form builder allowing admins to create custom forms with various field types, validation rules, and conditional logic.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "complex",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.944Z",
+  "updatedAt": "2026-01-17T05:35:03.944Z"
+}

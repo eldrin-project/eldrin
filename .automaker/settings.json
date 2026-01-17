@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "boardBackground": {
+    "imagePath": "/Users/tibor/projects/eldrin/.automaker/board/background.png",
+    "cardOpacity": 70,
+    "columnOpacity": 60,
+    "columnBorderEnabled": true,
+    "cardGlassmorphism": true,
+    "cardBorderEnabled": true,
+    "cardBorderOpacity": 80,
+    "hideScrollbar": false,
+    "imageVersion": 1768631133133
+  }
+}

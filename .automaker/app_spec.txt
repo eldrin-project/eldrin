@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project_specification>
+  <project_name>Eldrin Platform</project_name>
+
+  <overview>
+    Eldrin is a comprehensive multi-project application marketplace and micro-frontend platform designed for Cloudflare deployment. The platform consists of several interconnected components: an application marketplace (eldrin-website) that provides a catalog of 43+ business applications for installation and deployment on Cloudflare infrastructure; a shell application (eldrin-core) that serves as the host for loading and managing installed applications with user management and authentication; framework-agnostic core libraries (eldrin-app-core) providing database migrations, authentication, event communication, and CLI tools for building and submitting applications; framework-specific adapters (eldrin-app-react, eldrin-app-angular, eldrin-app-vue, eldrin-app-svelte) for developing applications on different frontend frameworks using single-spa micro-frontend architecture; and template generators (create-eldrin-project) for scaffolding new Eldrin applications. The platform supports multiple database backends (Cloudflare D1, SQLite, PostgreSQL), provides inter-app communication through an event system, includes comprehensive permission-based access control, and features a sophisticated theming/white-labeling architecture for enterprise customization.
+  </overview>
+
+  <technology_stack>
+    <technology>TypeScript</technology>
+    <technology>React 19</technology>
+    <technology>Angular (17-21)</technology>
+    <technology>Vue 3.4+</technology>
+    <technology>Svelte 4/5</technology>
+    <technology>Vite 7</technology>
+    <technology>Tailwind CSS 4</technology>
+    <technology>Cloudflare Workers</technology>
+    <technology>Cloudflare D1 (SQLite)</technology>
+    <technology>Cloudflare KV</technology>
+    <technology>Cloudflare R2</technology>
+    <technology>Wrangler</technology>
+    <technology>single-spa (micro-frontend orchestration)</technology>
+    <technology>single-spa-react</technology>
+    <technology>single-spa-angular</technology>
+    <technology>single-spa-vue</technology>
+    <technology>single-spa-svelte</technology>
+    <technology>Hono (server framework)</technology>
+    <technology>Zustand (state management)</technology>
+    <technology>React Router DOM 7</technology>
+    <technology>Radix UI (component primitives)</technology>
+    <technology>Lucide React (icons)</technology>
+    <technology>Motion (animations)</technology>
+    <technology>PostgreSQL (optional)</technology>
+    <technology>Bun (runtime/bundler)</technology>
+    <technology>tsup (library bundling)</technology>
+    <technology>Vitest (testing)</technology>
+    <technology>ESLint</technology>
+    <technology>GitHub Actions</technology>
+    <technology>Octokit (GitHub API)</technology>
+    <technology>JWT authentication</technology>
+    <technology>dotenv</technology>
+  </technology_stack>
+
+  <core_capabilities>
+    <capability>Application Marketplace with 43+ categorized business applications spanning Sales, Product, Supply Chain, Manufacturing, Finance, Customer, HR, Assets, and Platform domains</capability>
+    <capability>Micro-frontend Shell (eldrin-core) for hosting and orchestrating multiple applications using single-spa</capability>
+    <capability>Email/Password authentication with JWT tokens and session management</capability>
+    <capability>Role-based access control with platform roles, platform permissions, and per-app permissions</capability>
+    <capability>Framework-agnostic app development support (React, Angular, Vue, Svelte)</capability>
+    <capability>Database abstraction layer supporting Cloudflare D1, SQLite, and PostgreSQL</capability>
+    <capability>Database migration system with checksum verification and rollback support</capability>
+    <capability>CLI tools for building releases (eldrin-release) and submitting to marketplace (eldrin-submit)</capability>
+    <capability>License validation system for paid applications with encrypted bundle support</capability>
+    <capability>Inter-app event communication system (emit/subscribe patterns)</capability>
+    <capability>Comprehensive theming and white-labeling architecture with CSS custom properties</capability>
+    <capability>Dashboard widget system for extensible application UIs</capability>
+    <capability>Setup wizard for guided Cloudflare deployment</capability>
+    <capability>Developer registration and API key management for marketplace submissions</capability>
+    <capability>App manifest specification for declarative app configuration</capability>
+    <capability>Permission middleware for API route protection</capability>
+    <capability>Responsive design with mobile navigation support</capability>
+    <capability>Accessibility compliance (WCAG 2.1 AA)</capability>
+    <capability>Dark/Light theme support</capability>
+  </core_capabilities>
+
+  <implemented_features>
+    <feature>
+      <name>Application Shell (eldrin-core)</name>
+      <description>React-based shell application providing TopBar, SideNav, and main content area. Loads and orchestrates single-spa micro-frontend applications from manifests. Includes Dashboard, Settings, Login pages and comprehensive UI component library built on Radix UI.</description>
+      <file_locations>
+        <location>eldrin-core/src/layouts/Shell.tsx</location>
+        <location>eldrin-core/src/components/TopBar.tsx</location>
+        <location>eldrin-core/src/components/SideNav.tsx</location>
+        <location>eldrin-core/src/App.tsx</location>
+        <location>eldrin-core/src/pages/Dashboard.tsx</location>
+        <location>eldrin-core/src/pages/Settings.tsx</location>
+        <location>eldrin-core/src/pages/Login.tsx</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>Authentication System</name>
+      <description>JWT-based authentication with email/password login, session management via sessionStorage, logout functionality, and auth state restoration on app initialization. Includes platform role and permission checking.</description>
+      <file_locations>
+        <location>eldrin-core/src/stores/authStore.ts</location>
+        <location>eldrin-app-core/src/auth/index.ts</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>App Registry &amp; Manifest Loading</name>
+      <description>Dynamic application registration system that loads app manifests from URLs, validates required fields, resolves entry URLs, and registers apps with single-spa. Supports license validation for paid apps and encrypted bundle decryption.</description>
+      <file_locations>
+        <location>eldrin-core/src/stores/appRegistry.ts</location>
+        <location>eldrin-core/src/services/manifestLoader.ts</location>
+        <location>eldrin-core/src/types/manifest.ts</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>Database Abstraction Layer</name>
+      <description>D1-compatible database interface supporting Cloudflare D1, SQLite (via Bun), and PostgreSQL backends. Provides prepared statements, batch operations, and consistent API across all adapters.</description>
+      <file_locations>
+        <location>eldrin-app-core/src/database/interface.ts</location>
+        <location>eldrin-app-core/src/database/d1.ts</location>
+        <location>eldrin-app-core/src/database/sqlite.ts</location>
+        <location>eldrin-app-core/src/database/postgres.ts</location>
+        <location>eldrin-app-core/src/database/factory.ts</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>Migration System</name>
+      <description>Database migration runner with checksum verification, rollback support, and marketplace manifest generation. Validates migration filenames, extracts timestamps, and tracks applied migrations.</description>
+      <file_locations>
+        <location>eldrin-app-core/src/migrations/runner.ts</location>
+        <location>eldrin-app-core/src/migrations/checksum.ts</location>
+        <location>eldrin-app-core/src/migrations/rollback.ts</location>
+        <location>eldrin-app-core/src/migrations/sql-parser.ts</location>
+        <location>eldrin-app-core/src/migrations/marketplace.ts</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>Release CLI Tool</name>
+      <description>Command-line tool for preparing apps for marketplace submission. Handles version bumping (patch/minor/major), fetches latest version from marketplace, builds library bundles, generates migration manifests, creates deployment bundles with client assets, and updates versions manifest.</description>
+      <file_locations>
+        <location>eldrin-app-core/src/cli/release.ts</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>Submit CLI Tool</name>
+      <description>Command-line tool for submitting release packages to the Eldrin Marketplace. Reads files from release directory, validates manifest, supports binary file encoding, and creates PRs in the marketplace distribution repository.</description>
+      <file_locations>
+        <location>eldrin-app-core/src/cli/submit.ts</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>React Framework Adapter</name>
+      <description>React adapter providing createApp() for single-spa lifecycle, DatabaseProvider context, useDatabase() hooks, and integration with eldrin-app-core functionality.</description>
+      <file_locations>
+        <location>eldrin-app-react/src/index.ts</location>
+        <location>eldrin-app-react/src/createApp.ts</location>
+        <location>eldrin-app-react/src/context.tsx</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>Angular Framework Adapter</name>
+      <description>Angular adapter providing single-spa lifecycle integration, database services via dependency injection, and RxJS-based API patterns.</description>
+      <file_locations>
+        <location>eldrin-app-angular/src/index.ts</location>
+        <location>eldrin-app-angular/src/createApp.ts</location>
+        <location>eldrin-app-angular/src/providers.ts</location>
+        <location>eldrin-app-angular/src/tokens.ts</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>Vue Framework Adapter</name>
+      <description>Vue 3 adapter providing single-spa lifecycle integration and composables for database access and app configuration.</description>
+      <file_locations>
+        <location>eldrin-app-vue/src/index.ts</location>
+        <location>eldrin-app-vue/src/createApp.ts</location>
+        <location>eldrin-app-vue/src/composables.ts</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>Svelte Framework Adapter</name>
+      <description>Svelte adapter providing single-spa lifecycle integration and Svelte stores for database access and reactive state management.</description>
+      <file_locations>
+        <location>eldrin-app-svelte/src/index.ts</location>
+        <location>eldrin-app-svelte/src/createApp.ts</location>
+        <location>eldrin-app-svelte/src/stores.ts</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>Permission Middleware</name>
+      <description>Route-based permission checking middleware that compiles manifest routes, matches incoming requests, validates authentication and permissions, and supports CORS configuration.</description>
+      <file_locations>
+        <location>eldrin-app-core/src/middleware/index.ts</location>
+        <location>eldrin-app-core/src/middleware/matcher.ts</location>
+        <location>eldrin-app-core/src/middleware/types.ts</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>Event Communication System</name>
+      <description>Inter-app event system supporting emit/poll/push patterns. Apps can declare events they emit and subscribe to events from other apps with pattern matching.</description>
+      <file_locations>
+        <location>eldrin-app-core/src/events/index.ts</location>
+        <location>eldrin-app-core/src/events/client.ts</location>
+        <location>eldrin-app-core/src/events/types.ts</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>Marketplace Website</name>
+      <description>React-based marketing and marketplace website with landing page, app catalog with 43 applications across 10 domains, search and filtering, app detail modals, setup wizard for Cloudflare deployment, and developer registration.</description>
+      <file_locations>
+        <location>eldrin-website/src/pages/Marketplace/index.tsx</location>
+        <location>eldrin-website/src/pages/LandingPage.tsx</location>
+        <location>eldrin-website/src/pages/SetupWizard/index.tsx</location>
+        <location>eldrin-website/src/pages/DeveloperRegistration/index.tsx</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>User Management</name>
+      <description>User settings interface with user list, user detail pages, role assignment, and per-app permission configuration.</description>
+      <file_locations>
+        <location>eldrin-core/src/pages/settings/users/UserSettings.tsx</location>
+        <location>eldrin-core/src/pages/settings/users/UserList.tsx</location>
+        <location>eldrin-core/src/pages/settings/users/UserDetailPage.tsx</location>
+        <location>eldrin-core/src/pages/settings/users/AppPermissionsSection.tsx</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>Application Settings</name>
+      <description>Settings interface for managing installed applications, local app configuration, and app-specific settings.</description>
+      <file_locations>
+        <location>eldrin-core/src/pages/settings/ApplicationSettings.tsx</location>
+        <location>eldrin-core/src/pages/settings/AppList.tsx</location>
+        <location>eldrin-core/src/pages/settings/LocalAppForm.tsx</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>Project Template Generator</name>
+      <description>CLI tool (create-eldrin-project) for scaffolding new Eldrin applications with proper configuration, dependencies, and file structure.</description>
+      <file_locations>
+        <location>eldrin-templates/src/index.ts</location>
+        <location>eldrin-templates/src/template.ts</location>
+        <location>eldrin-templates/src/prompts.ts</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>License Validation System</name>
+      <description>License validation for paid apps including encrypted bundle decryption with customer master keys, wrapped key handling, and license status tracking.</description>
+      <file_locations>
+        <location>eldrin-core/src/services/licenseValidator.ts</location>
+        <location>eldrin-core/src/services/bundleDecryptor.ts</location>
+        <location>eldrin-core/src/stores/licenseStore.ts</location>
+      </file_locations>
+    </feature>
+    <feature>
+      <name>UI Component Library</name>
+      <description>Comprehensive UI component library built on Radix UI primitives including Button, Input, Card, Dialog, Dropdown, Tabs, Switch, Select, Checkbox, Avatar, Badge, and more with consistent theming.</description>
+      <file_locations>
+        <location>eldrin-core/src/components/ui/button.tsx</location>
+        <location>eldrin-core/src/components/ui/input.tsx</location>
+        <location>eldrin-core/src/components/ui/card.tsx</location>
+        <location>eldrin-core/src/components/ui/dialog.tsx</location>
+        <location>eldrin-core/src/components/ui/dropdown-menu.tsx</location>
+      </file_locations>
+    </feature>
+  </implemented_features>
+
+  <additional_requirements>
+    <requirement>Node.js &gt;= 18.0.0</requirement>
+    <requirement>Cloudflare account for deployment</requirement>
+    <requirement>Cloudflare Workers, D1, KV, and R2 services</requirement>
+    <requirement>ELDRIN_API_KEY environment variable for marketplace submissions</requirement>
+    <requirement>ELDRIN_DEVELOPER_ID for developer identification</requirement>
+    <requirement>Bun runtime (optional, for SQLite adapter and binary builds)</requirement>
+    <requirement>PostgreSQL (optional, for PostgreSQL adapter)</requirement>
+    <requirement>Wrangler CLI for Cloudflare deployment</requirement>
+  </additional_requirements>
+
+  <development_guidelines>
+    <guideline>Use TypeScript throughout all projects with strict type checking</guideline>
+    <guideline>Follow the &apos;Refined Industrial&apos; design aesthetic - clean geometric forms, high contrast, material honesty</guideline>
+    <guideline>Use CSS custom properties (design tokens) for all styling values</guideline>
+    <guideline>Maintain WCAG 2.1 AA accessibility compliance</guideline>
+    <guideline>Use Radix UI primitives for complex interactive components</guideline>
+    <guideline>Use Tailwind CSS 4 for utility-based styling</guideline>
+    <guideline>Follow single-spa micro-frontend patterns for app development</guideline>
+    <guideline>Use Zustand for state management in React apps</guideline>
+    <guideline>Implement database migrations with checksums for data integrity</guideline>
+    <guideline>Use Vitest for testing with comprehensive test coverage</guideline>
+    <guideline>Follow ESLint rules for code quality</guideline>
+    <guideline>Use Vite for development and production builds</guideline>
+    <guideline>Package libraries with tsup for ESM/CJS dual exports</guideline>
+    <guideline>Include TypeScript declarations with all packages</guideline>
+    <guideline>Use semantic versioning for all packages</guideline>
+    <guideline>Document all public APIs with JSDoc comments</guideline>
+  </development_guidelines>
+
+  <implementation_roadmap>
+    <phase>
+      <name>Core Platform</name>
+      <status>completed</status>
+      <description>Shell application (eldrin-core) with authentication, app registry, manifest loading, routing, and base UI components</description>
+    </phase>
+    <phase>
+      <name>Framework Adapters</name>
+      <status>completed</status>
+      <description>React, Angular, Vue, and Svelte adapters for building Eldrin apps with single-spa lifecycle integration</description>
+    </phase>
+    <phase>
+      <name>Database Layer</name>
+      <status>completed</status>
+      <description>Database abstraction supporting D1, SQLite, and PostgreSQL with migration system including checksums and rollback</description>
+    </phase>
+    <phase>
+      <name>CLI Tooling</name>
+      <status>completed</status>
+      <description>eldrin-release and eldrin-submit CLI tools for building releases and submitting to marketplace</description>
+    </phase>
+    <phase>
+      <name>Marketplace Website</name>
+      <status>completed</status>
+      <description>Marketing website with app catalog, setup wizard, and developer registration</description>
+    </phase>
+    <phase>
+      <name>Permission System</name>
+      <status>completed</status>
+      <description>Role-based access control with platform roles, permissions, and per-app permission middleware</description>
+    </phase>
+    <phase>
+      <name>Event System</name>
+      <status>completed</status>
+      <description>Inter-app event communication with emit/subscribe patterns</description>
+    </phase>
+    <phase>
+      <name>License Validation</name>
+      <status>completed</status>
+      <description>License validation for paid apps with encrypted bundle support</description>
+    </phase>
+    <phase>
+      <name>Template Applications</name>
+      <status>in_progress</status>
+      <description>Demo todo applications for React, Angular, Vue, and Svelte frameworks</description>
+    </phase>
+    <phase>
+      <name>Documentation</name>
+      <status>in_progress</status>
+      <description>Comprehensive documentation site (eldrin-docs) using Astro</description>
+    </phase>
+    <phase>
+      <name>Additional Business Apps</name>
+      <status>pending</status>
+      <description>CRM, Catalog, Invoicing, and other business applications from the marketplace catalog</description>
+    </phase>
+  </implementation_roadmap>
+</project_specification>

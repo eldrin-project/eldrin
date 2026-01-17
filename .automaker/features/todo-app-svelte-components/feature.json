@@ -1,0 +1,14 @@
+{
+  "id": "todo-app-svelte-components",
+  "category": "UI",
+  "title": "Svelte Todo Components",
+  "description": "Build Svelte components for todo CRUD with two-way binding and reactive statements. Uses minimal syntax and compile-time optimizations.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "todo-app-svelte-stores"
+  ],
+  "createdAt": "2026-01-17T05:35:03.921Z",
+  "updatedAt": "2026-01-17T05:35:03.921Z"
+}

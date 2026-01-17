@@ -1,0 +1,14 @@
+{
+  "id": "docs-architecture-overview",
+  "category": "Documentation",
+  "title": "Architecture Documentation",
+  "description": "Document platform architecture including micro-frontend orchestration, database layer, authentication flow, and inter-app communication. Includes diagrams.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "docs-site-scaffold"
+  ],
+  "createdAt": "2026-01-17T05:35:03.927Z",
+  "updatedAt": "2026-01-17T05:35:03.927Z"
+}

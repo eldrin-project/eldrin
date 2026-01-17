@@ -1,0 +1,14 @@
+{
+  "id": "invoicing-database-schema",
+  "category": "Database",
+  "title": "Invoicing Database Schema",
+  "description": "Define migrations for invoices, line items, payments, customers, tax rates, and templates. Supports multi-currency and complex tax calculations.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [
+    "invoicing-app-scaffold"
+  ],
+  "createdAt": "2026-01-17T05:35:03.925Z",
+  "updatedAt": "2026-01-17T05:35:03.925Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "api-key-ui",
+  "category": "UI",
+  "title": "API Key Management UI",
+  "description": "Build interface for creating, rotating, and revoking API keys with permission scope selection and usage statistics dashboard.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "simple",
+  "dependencies": [
+    "api-key-management"
+  ],
+  "createdAt": "2026-01-17T05:35:03.935Z",
+  "updatedAt": "2026-01-17T05:35:03.935Z"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "comments-mentions",
+  "category": "Core",
+  "title": "Comments & Mentions System",
+  "description": "Implement commenting system supporting @mentions, rich text, attachments, and threaded conversations on any entity.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.944Z",
+  "updatedAt": "2026-01-17T05:35:03.944Z"
+}

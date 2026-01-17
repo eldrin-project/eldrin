@@ -1,0 +1,12 @@
+{
+  "id": "mobile-app-shell",
+  "category": "UI",
+  "title": "Mobile-Optimized Shell",
+  "description": "Create responsive mobile shell with bottom navigation, gesture support, and touch-optimized interactions for mobile devices.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.943Z",
+  "updatedAt": "2026-01-17T05:35:03.943Z"
+}

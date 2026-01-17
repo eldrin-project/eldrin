@@ -1,0 +1,12 @@
+{
+  "id": "backup-restore-system",
+  "category": "Core",
+  "title": "Backup & Restore System",
+  "description": "Create automated backup system for D1 databases with scheduled snapshots, point-in-time recovery, and cross-region replication.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.940Z",
+  "updatedAt": "2026-01-17T05:35:03.940Z"
+}

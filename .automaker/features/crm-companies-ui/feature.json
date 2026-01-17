@@ -1,0 +1,15 @@
+{
+  "id": "crm-companies-ui",
+  "category": "UI",
+  "title": "CRM Companies Interface",
+  "description": "Build company management interface with organizational hierarchy view, contact list, activity timeline, and opportunity tracking.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "crm-companies-api",
+    "crm-contacts-ui"
+  ],
+  "createdAt": "2026-01-17T05:35:03.923Z",
+  "updatedAt": "2026-01-17T05:35:03.923Z"
+}

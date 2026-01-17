@@ -1,0 +1,14 @@
+{
+  "id": "webhook-configuration-ui",
+  "category": "UI",
+  "title": "Webhook Configuration UI",
+  "description": "Build interface for managing webhook endpoints with URL configuration, event selection, secret key management, and delivery logs.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "simple",
+  "dependencies": [
+    "webhook-system"
+  ],
+  "createdAt": "2026-01-17T05:35:03.934Z",
+  "updatedAt": "2026-01-17T05:35:03.934Z"
+}

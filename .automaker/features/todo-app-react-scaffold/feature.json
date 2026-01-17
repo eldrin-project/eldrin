@@ -1,0 +1,12 @@
+{
+  "id": "todo-app-react-scaffold",
+  "category": "Template Applications",
+  "title": "React Todo App Scaffold",
+  "description": "Create basic React todo application structure using eldrin-app-react adapter with single-spa lifecycle integration. Includes component structure, routing setup, and manifest configuration.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "simple",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.917Z",
+  "updatedAt": "2026-01-17T05:35:03.917Z"
+}

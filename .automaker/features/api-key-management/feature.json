@@ -1,0 +1,12 @@
+{
+  "id": "api-key-management",
+  "category": "Core",
+  "title": "API Key Management",
+  "description": "Create API key generation and management system for programmatic access with scoped permissions, expiration, and usage analytics.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.935Z",
+  "updatedAt": "2026-01-17T05:35:03.935Z"
+}

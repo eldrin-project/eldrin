@@ -1,0 +1,14 @@
+{
+  "id": "theming-editor-ui",
+  "category": "UI",
+  "title": "Theme Editor Interface",
+  "description": "Build visual theme editor allowing administrators to customize colors, fonts, logo, and branding. Generates CSS variable overrides for white-labeling.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [
+    "theming-css-variables"
+  ],
+  "createdAt": "2026-01-17T05:35:03.929Z",
+  "updatedAt": "2026-01-17T05:35:03.929Z"
+}

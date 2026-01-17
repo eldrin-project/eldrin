@@ -1,0 +1,12 @@
+{
+  "id": "activity-feed",
+  "category": "UI",
+  "title": "Global Activity Feed",
+  "description": "Build real-time activity feed showing recent actions across all apps with filtering, grouping, and subscription options.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.945Z",
+  "updatedAt": "2026-01-17T05:35:03.945Z"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "marketplace-versioning",
+  "category": "Core",
+  "title": "App Version Management",
+  "description": "Enhance marketplace with version comparison, changelog display, upgrade/downgrade paths, and compatibility checking.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.937Z",
+  "updatedAt": "2026-01-17T05:35:03.937Z"
+}

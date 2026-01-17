@@ -1,0 +1,12 @@
+{
+  "id": "webhook-system",
+  "category": "Core",
+  "title": "Webhook System",
+  "description": "Implement outbound webhook system allowing apps to send HTTP callbacks on events with retry logic, signature verification, and delivery tracking.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.934Z",
+  "updatedAt": "2026-01-17T05:35:03.934Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "password-reset-flow",
+  "category": "Authentication",
+  "title": "Password Reset Flow",
+  "description": "Implement self-service password reset with email verification, secure token generation, and password strength requirements.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.936Z",
+  "updatedAt": "2026-01-17T05:35:03.936Z",
+  "branchName": "main",
+  "descriptionHistory": []
+}

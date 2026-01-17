@@ -1,0 +1,14 @@
+{
+  "id": "docs-deployment-guide",
+  "category": "Documentation",
+  "title": "Deployment Guide",
+  "description": "Document Cloudflare deployment process including Workers, D1, KV, R2 setup, environment variables, and production configuration.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "docs-getting-started"
+  ],
+  "createdAt": "2026-01-17T05:35:03.927Z",
+  "updatedAt": "2026-01-17T05:35:03.927Z"
+}

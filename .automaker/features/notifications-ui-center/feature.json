@@ -1,0 +1,14 @@
+{
+  "id": "notifications-ui-center",
+  "category": "UI",
+  "title": "Notification Center UI",
+  "description": "Build notification center dropdown in TopBar showing unread notifications, action buttons, mark as read, and notification preferences.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "notifications-system"
+  ],
+  "createdAt": "2026-01-17T05:35:03.931Z",
+  "updatedAt": "2026-01-17T05:35:03.931Z"
+}

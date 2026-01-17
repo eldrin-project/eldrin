@@ -1,0 +1,14 @@
+{
+  "id": "crm-leads-pipeline",
+  "category": "UI",
+  "title": "CRM Leads Pipeline",
+  "description": "Create Kanban-style lead pipeline with drag-and-drop between stages, qualification scoring, and conversion tracking. Uses Motion for smooth animations.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [
+    "crm-companies-ui"
+  ],
+  "createdAt": "2026-01-17T05:35:03.923Z",
+  "updatedAt": "2026-01-17T05:35:03.923Z"
+}

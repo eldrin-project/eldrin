@@ -1,0 +1,14 @@
+{
+  "id": "invoicing-payment-tracking",
+  "category": "UI",
+  "title": "Payment Tracking Interface",
+  "description": "Create payment recording interface with partial payment support, payment method tracking, and aging reports. Shows outstanding balances and overdue invoices.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "invoicing-editor-ui"
+  ],
+  "createdAt": "2026-01-17T05:35:03.926Z",
+  "updatedAt": "2026-01-17T05:35:03.926Z"
+}

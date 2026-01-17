@@ -1,0 +1,14 @@
+{
+  "id": "todo-app-react-list-view",
+  "category": "UI",
+  "title": "Todo List View Component",
+  "description": "Build React component for displaying todos in a table/list format with sorting, filtering, and pagination. Uses eldrin-core UI components for consistent styling.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "todo-app-react-api-routes"
+  ],
+  "createdAt": "2026-01-17T05:35:03.918Z",
+  "updatedAt": "2026-01-17T05:35:03.918Z"
+}

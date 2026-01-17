@@ -1,0 +1,14 @@
+{
+  "id": "catalog-products-ui",
+  "category": "UI",
+  "title": "Catalog Products Interface",
+  "description": "Build product management UI with grid/list views, quick edit, image gallery, variant management, and batch editing capabilities.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "catalog-products-api"
+  ],
+  "createdAt": "2026-01-17T05:35:03.924Z",
+  "updatedAt": "2026-01-17T05:35:03.924Z"
+}

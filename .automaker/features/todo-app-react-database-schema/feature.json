@@ -1,0 +1,14 @@
+{
+  "id": "todo-app-react-database-schema",
+  "category": "Database",
+  "title": "Todo App Database Schema",
+  "description": "Define database migrations for todo application including todos table with fields for title, description, status, assignee, and timestamps. Implements checksum verification for data integrity.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "simple",
+  "dependencies": [
+    "todo-app-react-scaffold"
+  ],
+  "createdAt": "2026-01-17T05:35:03.917Z",
+  "updatedAt": "2026-01-17T05:35:03.917Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "email-queue-worker",
+  "category": "Core",
+  "title": "Email Queue Worker",
+  "description": "Create background worker for processing email queue with retry logic, delivery tracking, and bounce handling using Cloudflare Queues.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "email-templates"
+  ],
+  "createdAt": "2026-01-17T05:35:03.937Z",
+  "updatedAt": "2026-01-17T05:35:03.937Z"
+}

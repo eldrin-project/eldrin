@@ -1,0 +1,12 @@
+{
+  "id": "marketplace-reviews",
+  "category": "UI",
+  "title": "App Reviews & Ratings",
+  "description": "Add review system to marketplace allowing users to rate and review installed apps with moderation workflow.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.937Z",
+  "updatedAt": "2026-01-17T05:35:03.937Z"
+}

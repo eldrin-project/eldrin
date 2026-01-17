@@ -1,0 +1,14 @@
+{
+  "id": "crm-contacts-api",
+  "category": "API",
+  "title": "CRM Contacts API",
+  "description": "Implement API routes for contact management including CRUD operations, search, filtering, and association with companies. Includes permission middleware for role-based access.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "crm-database-schema"
+  ],
+  "createdAt": "2026-01-17T05:35:03.922Z",
+  "updatedAt": "2026-01-17T05:35:03.922Z"
+}

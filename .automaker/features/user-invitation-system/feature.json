@@ -1,0 +1,12 @@
+{
+  "id": "user-invitation-system",
+  "category": "Authentication",
+  "title": "User Invitation System",
+  "description": "Create invitation system allowing admins to invite users via email with role pre-assignment and first-time setup flow.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.936Z",
+  "updatedAt": "2026-01-17T05:35:03.936Z"
+}

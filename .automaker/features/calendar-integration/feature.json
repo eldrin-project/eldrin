@@ -1,0 +1,12 @@
+{
+  "id": "calendar-integration",
+  "category": "Core",
+  "title": "Calendar Integration",
+  "description": "Implement calendar system with event management, recurring events, reminders, and integration with external calendars (Google, Outlook).",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "complex",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.944Z",
+  "updatedAt": "2026-01-17T05:35:03.944Z"
+}

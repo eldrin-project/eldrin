@@ -1,0 +1,12 @@
+{
+  "id": "localization-framework",
+  "category": "Core",
+  "title": "Localization Framework",
+  "description": "Implement i18n framework supporting multiple languages with message catalogs, pluralization, date/number formatting, and RTL support.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.941Z",
+  "updatedAt": "2026-01-17T05:35:03.941Z"
+}

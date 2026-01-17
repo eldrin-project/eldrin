@@ -1,0 +1,14 @@
+{
+  "id": "docs-app-development-guide",
+  "category": "Documentation",
+  "title": "App Development Guide",
+  "description": "Create detailed guide for building Eldrin apps covering manifest specification, framework adapters, database access, and API routes.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "docs-architecture-overview"
+  ],
+  "createdAt": "2026-01-17T05:35:03.927Z",
+  "updatedAt": "2026-01-17T05:35:03.927Z"
+}

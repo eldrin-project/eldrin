@@ -1,0 +1,14 @@
+{
+  "id": "reporting-builder-ui",
+  "category": "UI",
+  "title": "Report Builder Interface",
+  "description": "Build visual report builder with dataset selection, column configuration, filtering, sorting, grouping, and aggregations. No-code report creation.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "complex",
+  "dependencies": [
+    "reporting-engine"
+  ],
+  "createdAt": "2026-01-17T05:35:03.933Z",
+  "updatedAt": "2026-01-17T05:35:03.933Z"
+}

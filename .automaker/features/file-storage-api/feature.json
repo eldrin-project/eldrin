@@ -1,0 +1,12 @@
+{
+  "id": "file-storage-api",
+  "category": "API",
+  "title": "File Storage API",
+  "description": "Create unified file storage API wrapping Cloudflare R2 with multipart upload, signed URLs, metadata management, and access control.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.932Z",
+  "updatedAt": "2026-01-17T05:35:03.932Z"
+}

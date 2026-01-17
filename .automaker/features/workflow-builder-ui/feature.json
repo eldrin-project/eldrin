@@ -1,0 +1,14 @@
+{
+  "id": "workflow-builder-ui",
+  "category": "UI",
+  "title": "Visual Workflow Builder",
+  "description": "Build drag-and-drop workflow designer with node-based interface, condition configuration, and real-time validation.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "complex",
+  "dependencies": [
+    "workflow-engine"
+  ],
+  "createdAt": "2026-01-17T05:35:03.943Z",
+  "updatedAt": "2026-01-17T05:35:03.943Z"
+}

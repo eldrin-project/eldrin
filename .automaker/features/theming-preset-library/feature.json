@@ -1,0 +1,14 @@
+{
+  "id": "theming-preset-library",
+  "category": "UI",
+  "title": "Theme Preset Library",
+  "description": "Create collection of pre-built theme presets (modern, classic, high-contrast, brand-specific) with one-click application and customization.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "simple",
+  "dependencies": [
+    "theming-editor-ui"
+  ],
+  "createdAt": "2026-01-17T05:35:03.929Z",
+  "updatedAt": "2026-01-17T05:35:03.929Z"
+}

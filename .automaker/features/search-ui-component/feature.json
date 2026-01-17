@@ -1,0 +1,14 @@
+{
+  "id": "search-ui-component",
+  "category": "UI",
+  "title": "Global Search Component",
+  "description": "Build command palette-style search UI (⌘K) with keyboard navigation, grouped results by app, quick actions, and recent searches.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "search-api-endpoints"
+  ],
+  "createdAt": "2026-01-17T05:35:03.930Z",
+  "updatedAt": "2026-01-17T05:35:03.930Z"
+}

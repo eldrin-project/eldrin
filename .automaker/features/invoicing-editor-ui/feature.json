@@ -1,0 +1,14 @@
+{
+  "id": "invoicing-editor-ui",
+  "category": "UI",
+  "title": "Invoice Editor Interface",
+  "description": "Build invoice editor with dynamic line items, real-time totals calculation, customer selection, and template customization. Uses spreadsheet-like interactions.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "complex",
+  "dependencies": [
+    "invoicing-generation-api"
+  ],
+  "createdAt": "2026-01-17T05:35:03.925Z",
+  "updatedAt": "2026-01-17T05:35:03.925Z"
+}

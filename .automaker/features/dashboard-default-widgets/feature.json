@@ -1,0 +1,14 @@
+{
+  "id": "dashboard-default-widgets",
+  "category": "UI",
+  "title": "Default Dashboard Widgets",
+  "description": "Create core widgets including activity feed, quick stats, recent items, notifications, and welcome card. Demonstrates widget API usage.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "dashboard-layout-editor"
+  ],
+  "createdAt": "2026-01-17T05:35:03.928Z",
+  "updatedAt": "2026-01-17T05:35:03.928Z"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "notifications-preferences",
+  "category": "UI",
+  "title": "Notification Preferences",
+  "description": "Create per-app notification settings allowing users to configure delivery channels, frequency, and quiet hours. Supports granular control.",
+  "status": "backlog",
+  "priority": 3,
+  "complexity": "simple",
+  "dependencies": [
+    "notifications-ui-center"
+  ],
+  "createdAt": "2026-01-17T05:35:03.931Z",
+  "updatedAt": "2026-01-17T05:35:03.931Z"
+}

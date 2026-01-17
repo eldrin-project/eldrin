@@ -1,0 +1,14 @@
+{
+  "id": "file-upload-component",
+  "category": "UI",
+  "title": "File Upload Component",
+  "description": "Build reusable file upload component with drag-and-drop, progress tracking, preview generation, and validation. Supports multiple files.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "file-storage-api"
+  ],
+  "createdAt": "2026-01-17T05:35:03.932Z",
+  "updatedAt": "2026-01-17T05:35:03.932Z"
+}

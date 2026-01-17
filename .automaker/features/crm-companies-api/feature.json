@@ -1,0 +1,14 @@
+{
+  "id": "crm-companies-api",
+  "category": "API",
+  "title": "CRM Companies API",
+  "description": "Implement API routes for company/account management with hierarchical organization support, custom fields, and contact associations.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "crm-database-schema"
+  ],
+  "createdAt": "2026-01-17T05:35:03.922Z",
+  "updatedAt": "2026-01-17T05:35:03.922Z"
+}

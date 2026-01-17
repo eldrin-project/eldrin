@@ -1,0 +1,16 @@
+{
+  "includeCoAuthoredBy": false,
+  "permissions": {
+    "allow": [
+      "Skill(frontend-design:frontend-design)",
+      "Bash(grep:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(curl:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "WebFetch(domain:github.com)",
+      "WebSearch"
+    ]
+  }
+}

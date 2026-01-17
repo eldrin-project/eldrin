@@ -1,0 +1,12 @@
+{
+  "id": "api-rate-limiting",
+  "category": "Core",
+  "title": "API Rate Limiting",
+  "description": "Implement rate limiting middleware with configurable limits per user/IP, sliding window algorithm, and quota tracking using Cloudflare KV.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [],
+  "createdAt": "2026-01-17T05:35:03.934Z",
+  "updatedAt": "2026-01-17T05:35:03.934Z"
+}
