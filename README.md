@@ -74,16 +74,16 @@ This is a **parent repository** that orchestrates multiple components via Git su
 | [`eldrin-templates`](./eldrin-templates) | Project scaffolding templates (`create-eldrin-project`) | [eldrin-project/eldrin-templates](https://github.com/eldrin-project/eldrin-templates) |
 | [`eldrin-marketplace-dist`](./eldrin-marketplace-dist) | Marketplace distribution and CDN assets | [eldrin-project/eldrin-marketplace-dist](https://github.com/eldrin-project/eldrin-marketplace-dist) |
 
-### Example Applications (Local Only)
+### Example Applications
 
-These directories contain example/demo applications for learning purposes and are not tracked as submodules:
+Example/demo todo applications showcasing framework integration:
 
-| Directory | Description |
-|-----------|-------------|
-| `angular-todo` | Angular example app |
-| `react-todo` | React example app |
-| `svelte-todo` | Svelte example app |
-| `vue-todo` | Vue example app |
+| Directory | Description | Repository |
+|-----------|-------------|------------|
+| [`angular-todo`](./angular-todo) | Angular todo example app | [eldrin-project/angular-todo](https://github.com/eldrin-project/angular-todo) |
+| [`react-todo`](./react-todo) | React todo example app | [eldrin-project/react-todo](https://github.com/eldrin-project/react-todo) |
+| [`svelte-todo`](./svelte-todo) | Svelte todo example app | [eldrin-project/svelte-todo](https://github.com/eldrin-project/svelte-todo) |
+| [`vue-todo`](./vue-todo) | Vue todo example app | [eldrin-project/vue-todo](https://github.com/eldrin-project/vue-todo) |
 
 ## Getting Started
 
@@ -413,6 +413,81 @@ npm run dev
 cd eldrin-docs
 npm install
 npm run dev
+```
+
+### Working with Todo Example Apps
+
+The root `package.json` provides orchestration scripts for managing all todo example applications:
+
+#### Install Dependencies
+
+```bash
+# Install dependencies for all submodules (including todo apps)
+npm run install:all
+
+# Install only todo app dependencies
+npm run install:todos
+
+# Install all submodules (core apps and todos)
+npm run install:submodules
+```
+
+#### Development Servers
+
+```bash
+# Run individual framework dev servers
+npm run dev:angular   # Runs on port 4005
+npm run dev:react     # Runs on port 4004
+npm run dev:svelte    # Runs on port 4007
+npm run dev:vue       # Runs on port 4006
+```
+
+#### Build Applications
+
+```bash
+# Build individual apps
+npm run build:angular
+npm run build:react
+npm run build:svelte
+npm run build:vue
+
+# Build all todo apps together
+npm run build:all
+```
+
+#### Preview Production Builds
+
+```bash
+npm run preview:angular
+npm run preview:react
+npm run preview:svelte
+npm run preview:vue
+```
+
+#### Submodule Management
+
+```bash
+# Update all submodules to latest remote commits
+npm run submodules:update
+
+# Check status of all submodules
+npm run submodules:status
+
+# Sync submodule URLs and reinitialize
+npm run submodules:sync
+```
+
+#### Clean Build Artifacts
+
+```bash
+# Remove all node_modules directories
+npm run clean:node_modules
+
+# Remove all dist directories
+npm run clean:dist
+
+# Clean everything
+npm run clean:all
 ```
 
 ## App Development

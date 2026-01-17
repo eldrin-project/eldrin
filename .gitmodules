@@ -37,3 +37,15 @@
 [submodule "eldrin-app-vue"]
 	path = eldrin-app-vue
 	url = git@github.com:eldrin-project/eldrin-app-vue.git
+[submodule "angular-todo"]
+	path = angular-todo
+	url = git@github.com:eldrin-project/angular-todo.git
+[submodule "react-todo"]
+	path = react-todo
+	url = git@github.com:eldrin-project/react-todo.git
+[submodule "svelte-todo"]
+	path = svelte-todo
+	url = git@github.com:eldrin-project/svelte-todo.git
+[submodule "vue-todo"]
+	path = vue-todo
+	url = git@github.com:eldrin-project/vue-todo.git

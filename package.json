@@ -1,0 +1,47 @@
+{
+  "name": "eldrin",
+  "version": "1.0.0",
+  "description": "Eldrin - Modular business application platform with multi-framework support",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "install:all": "npm run install:submodules && npm run install:todos",
+    "install:submodules": "git submodule update --init --recursive && git submodule foreach 'npm install 2>/dev/null || true'",
+    "install:todos": "cd angular-todo && npm install && cd ../react-todo && npm install && cd ../svelte-todo && npm install && cd ../vue-todo && npm install && cd ..",
+    "dev:angular": "cd angular-todo && npm run dev",
+    "dev:react": "cd react-todo && npm run dev",
+    "dev:svelte": "cd svelte-todo && npm run dev",
+    "dev:vue": "cd vue-todo && npm run dev",
+    "build:angular": "cd angular-todo && npm run build",
+    "build:react": "cd react-todo && npm run build",
+    "build:svelte": "cd svelte-todo && npm run build",
+    "build:vue": "cd vue-todo && npm run build",
+    "build:all": "npm run build:angular && npm run build:react && npm run build:svelte && npm run build:vue",
+    "preview:angular": "cd angular-todo && npm run preview",
+    "preview:react": "cd react-todo && npm run preview",
+    "preview:svelte": "cd svelte-todo && npm run preview",
+    "preview:vue": "cd vue-todo && npm run preview",
+    "clean:node_modules": "rm -rf angular-todo/node_modules react-todo/node_modules svelte-todo/node_modules vue-todo/node_modules",
+    "clean:dist": "rm -rf angular-todo/dist react-todo/dist svelte-todo/dist vue-todo/dist",
+    "clean:all": "npm run clean:node_modules && npm run clean:dist",
+    "submodules:update": "git submodule update --remote --merge",
+    "submodules:status": "git submodule status",
+    "submodules:sync": "git submodule sync && git submodule update --init --recursive"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "micro-frontend",
+    "single-spa",
+    "angular",
+    "react",
+    "svelte",
+    "vue"
+  ],
+  "author": "Eldrin Project",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:eldrin-project/eldrin.git"
+  }
+}
