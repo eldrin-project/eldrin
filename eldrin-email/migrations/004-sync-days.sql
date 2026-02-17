@@ -1,0 +1,1 @@
+ALTER TABLE connected_mailboxes ADD COLUMN sync_days INTEGER NOT NULL DEFAULT 30;

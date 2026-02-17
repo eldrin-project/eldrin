@@ -25,6 +25,13 @@ const SYNC_DEPTH_OPTIONS: { value: SyncDepth; label: string; description: string
   { value: 'thread_only', label: 'Thread summary', description: 'Store minimal thread data, fetch everything on demand (smallest storage)' },
 ];
 
+const SYNC_DAYS_OPTIONS: { value: number; label: string }[] = [
+  { value: 7, label: 'Last 7 days' },
+  { value: 30, label: 'Last 30 days' },
+  { value: 90, label: 'Last 90 days' },
+  { value: 0, label: 'All emails' },
+];
+
 function formatRelativeTime(timestamp: number | null): string {
   if (!timestamp) return 'Never';
   const diff = Date.now() - timestamp;
@@ -150,6 +157,16 @@ export function MailboxSettings({ apiBase }: MailboxSettingsProps) {
     }
   }
 
+  async function handleSyncDaysChange(mailbox: Mailbox, syncDays: number) {
+    try {
+      await api.updateMailbox(apiBase, authHeaders, mailbox.id, { syncDays });
+      toast.success('Sync window updated (takes effect on next full sync)');
+      fetchMailboxes();
+    } catch {
+      toast.error('Failed to update sync window');
+    }
+  }
+
   async function handleSyncNow(mailbox: Mailbox) {
     setSyncingId(mailbox.id);
     try {
@@ -165,44 +182,48 @@ export function MailboxSettings({ apiBase }: MailboxSettingsProps) {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-12">
+      <div className="flex justify-center items-center h-full">
         <span className="loading loading-spinner loading-md" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold">Mailbox Settings</h2>
-      </div>
-
-      {/* Connect buttons */}
-      <div className="flex gap-3 mb-6">
-        <button
-          className="btn btn-primary gap-2"
-          onClick={() => api.connectGmail(apiBase)}
-        >
-          <Mail className="w-4 h-4" />
-          Connect Gmail
-        </button>
-        <button className="btn btn-ghost gap-2" disabled>
-          <Mail className="w-4 h-4" />
-          Connect Outlook
-          <span className="badge badge-sm">Soon</span>
-        </button>
-      </div>
-
-      {/* Mailbox list */}
-      {mailboxes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-base-content/50 border border-base-300 rounded-box">
-          <Mail className="w-12 h-12 mb-4 opacity-30" />
-          <h3 className="text-lg font-medium mb-1">No mailboxes connected</h3>
-          <p className="text-sm">Connect your Gmail account to get started with email.</p>
+    <div className="flex flex-col h-full">
+      {/* Sticky header */}
+      <div className="flex-shrink-0 px-4 sm:px-6 pt-4 pb-3 border-b border-base-300">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Mailbox Settings</h2>
         </div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {mailboxes.map((mailbox) => (
+
+        {/* Connect buttons */}
+        <div className="flex gap-3 mt-3">
+          <button
+            className="btn btn-primary btn-sm gap-2"
+            onClick={() => api.connectGmail(apiBase, authHeaders).catch(() => toast.error('Failed to start Gmail connection'))}
+          >
+            <Mail className="w-4 h-4" />
+            Connect Gmail
+          </button>
+          <button className="btn btn-ghost btn-sm gap-2" disabled>
+            <Mail className="w-4 h-4" />
+            Connect Outlook
+            <span className="badge badge-sm">Soon</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Scrollable mailbox list */}
+      <div className="flex-1 overflow-y-auto min-h-0 px-4 sm:px-6 py-4">
+        {mailboxes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-base-content/50 border border-base-300 rounded-box">
+            <Mail className="w-12 h-12 mb-4 opacity-30" />
+            <h3 className="text-lg font-medium mb-1">No mailboxes connected</h3>
+            <p className="text-sm">Connect your Gmail account to get started with email.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 max-w-2xl">
+            {mailboxes.map((mailbox) => (
             <div key={mailbox.id} className="card bg-base-200 shadow-sm">
               <div className="card-body p-4">
                 {/* Header row */}
@@ -251,6 +272,20 @@ export function MailboxSettings({ apiBase }: MailboxSettingsProps) {
                     title="Sync depth"
                   >
                     {SYNC_DEPTH_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* Sync window selector */}
+                  <select
+                    className="select select-sm select-bordered"
+                    value={mailbox.syncDays}
+                    onChange={(e) => handleSyncDaysChange(mailbox, Number(e.target.value))}
+                    title="Sync window"
+                  >
+                    {SYNC_DAYS_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>
                         {opt.label}
                       </option>
@@ -326,8 +361,9 @@ export function MailboxSettings({ apiBase }: MailboxSettingsProps) {
               </div>
             </div>
           ))}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import type { ThreadDetail, EmailMessage } from '../../types/email';
 import * as api from '../../api';
+import { ComposeModal, type ComposeContext } from '../compose/ComposeModal';
 
 interface ThreadViewProps {
   apiBase: string;
@@ -80,10 +81,16 @@ function MessageBody({ message }: { message: EmailMessage }) {
 function MessageCard({
   message,
   defaultExpanded,
+  onReply,
+  onReplyAll,
+  onForward,
 }: {
   message: EmailMessage;
   isLast?: boolean;
   defaultExpanded: boolean;
+  onReply: (msg: EmailMessage) => void;
+  onReplyAll: (msg: EmailMessage) => void;
+  onForward: (msg: EmailMessage) => void;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
 
@@ -152,19 +159,19 @@ function MessageCard({
           </div>
 
           {/* Body */}
-          <div className="mt-2">
+          <div className="mt-2 max-w-4xl">
             <MessageBody message={message} />
           </div>
 
-          {/* Action buttons (placeholder for Phase 5) */}
+          {/* Action buttons */}
           <div className="flex gap-2 mt-4 pt-3 border-t border-base-300">
-            <button className="btn btn-sm btn-ghost gap-1" disabled title="Coming in Phase 5">
+            <button className="btn btn-sm btn-ghost gap-1" onClick={() => onReply(message)}>
               <Reply className="w-4 h-4" /> Reply
             </button>
-            <button className="btn btn-sm btn-ghost gap-1" disabled title="Coming in Phase 5">
+            <button className="btn btn-sm btn-ghost gap-1" onClick={() => onReplyAll(message)}>
               <ReplyAll className="w-4 h-4" /> Reply All
             </button>
-            <button className="btn btn-sm btn-ghost gap-1" disabled title="Coming in Phase 5">
+            <button className="btn btn-sm btn-ghost gap-1" onClick={() => onForward(message)}>
               <Forward className="w-4 h-4" /> Forward
             </button>
           </div>
@@ -182,6 +189,7 @@ export function ThreadView({ apiBase, threadId, onNavigate }: ThreadViewProps) {
   const [thread, setThread] = useState<ThreadDetail | null>(null);
   const [messages, setMessages] = useState<EmailMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [composeContext, setComposeContext] = useState<ComposeContext | null>(null);
 
   const fetchThread = useCallback(async () => {
     setLoading(true);
@@ -237,9 +245,43 @@ export function ThreadView({ apiBase, threadId, onNavigate }: ThreadViewProps) {
     }
   }
 
+  function handleReply(msg: EmailMessage) {
+    setComposeContext({
+      mode: 'reply',
+      to: [msg.fromAddress],
+      subject: msg.subject?.startsWith('Re:') ? msg.subject : `Re: ${msg.subject ?? ''}`,
+      inReplyTo: msg.id,
+      threadId: thread?.id,
+      quotedHtml: msg.bodyHtml ?? `<pre>${msg.bodyText ?? msg.snippet ?? ''}</pre>`,
+    });
+  }
+
+  function handleReplyAll(msg: EmailMessage) {
+    const allRecipients = [...msg.toAddresses, ...msg.ccAddresses];
+    setComposeContext({
+      mode: 'replyAll',
+      to: [msg.fromAddress],
+      cc: allRecipients.filter((a) => a !== msg.fromAddress),
+      subject: msg.subject?.startsWith('Re:') ? msg.subject : `Re: ${msg.subject ?? ''}`,
+      inReplyTo: msg.id,
+      threadId: thread?.id,
+      quotedHtml: msg.bodyHtml ?? `<pre>${msg.bodyText ?? msg.snippet ?? ''}</pre>`,
+    });
+  }
+
+  function handleForward(msg: EmailMessage) {
+    setComposeContext({
+      mode: 'forward',
+      to: [],
+      subject: msg.subject?.startsWith('Fwd:') ? msg.subject : `Fwd: ${msg.subject ?? ''}`,
+      threadId: undefined, // Forward starts a new thread
+      quotedHtml: msg.bodyHtml ?? `<pre>${msg.bodyText ?? msg.snippet ?? ''}</pre>`,
+    });
+  }
+
   if (loading) {
     return (
-      <div className="flex justify-center py-16">
+      <div className="flex justify-center items-center h-full">
         <span className="loading loading-spinner loading-lg" />
       </div>
     );
@@ -247,7 +289,7 @@ export function ThreadView({ apiBase, threadId, onNavigate }: ThreadViewProps) {
 
   if (!thread) {
     return (
-      <div className="text-center py-16">
+      <div className="flex flex-col items-center justify-center h-full">
         <p className="text-base-content/50">Thread not found</p>
         <button
           className="btn btn-ghost btn-sm mt-4"
@@ -260,74 +302,91 @@ export function ThreadView({ apiBase, threadId, onNavigate }: ThreadViewProps) {
   }
 
   return (
-    <div className="max-w-4xl">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <button
-          className="btn btn-ghost btn-sm"
-          onClick={() => onNavigate('/eldrin-email/inbox')}
-        >
-          <ArrowLeft className="w-4 h-4" />
-        </button>
+    <div className="flex flex-col h-full">
+      {/* Sticky header */}
+      <div className="flex-shrink-0 px-4 sm:px-6 pt-4 pb-3 border-b border-base-300">
+        <div className="flex items-center gap-3">
+          <button
+            className="btn btn-ghost btn-sm"
+            onClick={() => onNavigate('/eldrin-email/inbox')}
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
 
-        <h1 className="text-lg font-semibold flex-1 truncate">
-          {thread.subject || '(no subject)'}
-        </h1>
+          <h1 className="text-lg font-semibold flex-1 truncate">
+            {thread.subject || '(no subject)'}
+          </h1>
 
-        <span className="text-xs text-base-content/50">
-          {thread.messageCount} message{thread.messageCount !== 1 ? 's' : ''}
-        </span>
+          <span className="text-xs text-base-content/50">
+            {thread.messageCount} message{thread.messageCount !== 1 ? 's' : ''}
+          </span>
+        </div>
+
+        {/* Thread actions */}
+        <div className="flex items-center gap-1 mt-2">
+          <button
+            className="btn btn-sm btn-ghost gap-1"
+            onClick={handleStarToggle}
+          >
+            <Star
+              className={`w-4 h-4 ${
+                thread.isStarred ? 'fill-warning text-warning' : ''
+              }`}
+            />
+            {thread.isStarred ? 'Starred' : 'Star'}
+          </button>
+
+          <button
+            className="btn btn-sm btn-ghost gap-1"
+            onClick={handleArchive}
+          >
+            <Archive className="w-4 h-4" />
+            Archive
+          </button>
+
+          <button
+            className="btn btn-sm btn-ghost gap-1"
+            onClick={handleToggleRead}
+          >
+            {thread.isRead ? (
+              <>
+                <Mail className="w-4 h-4" /> Mark unread
+              </>
+            ) : (
+              <>
+                <MailOpen className="w-4 h-4" /> Mark read
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Thread actions */}
-      <div className="flex items-center gap-1 mb-4">
-        <button
-          className="btn btn-sm btn-ghost gap-1"
-          onClick={handleStarToggle}
-        >
-          <Star
-            className={`w-4 h-4 ${
-              thread.isStarred ? 'fill-warning text-warning' : ''
-            }`}
-          />
-          {thread.isStarred ? 'Starred' : 'Star'}
-        </button>
-
-        <button
-          className="btn btn-sm btn-ghost gap-1"
-          onClick={handleArchive}
-        >
-          <Archive className="w-4 h-4" />
-          Archive
-        </button>
-
-        <button
-          className="btn btn-sm btn-ghost gap-1"
-          onClick={handleToggleRead}
-        >
-          {thread.isRead ? (
-            <>
-              <Mail className="w-4 h-4" /> Mark unread
-            </>
-          ) : (
-            <>
-              <MailOpen className="w-4 h-4" /> Mark read
-            </>
-          )}
-        </button>
+      {/* Scrollable messages */}
+      <div className="flex-1 overflow-y-auto min-h-0 px-4 sm:px-6 py-4">
+        <div className="flex flex-col gap-3">
+          {messages.map((message, index) => (
+            <MessageCard
+              key={message.id}
+              message={message}
+              isLast={index === messages.length - 1}
+              defaultExpanded={index === messages.length - 1}
+              onReply={handleReply}
+              onReplyAll={handleReplyAll}
+              onForward={handleForward}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex flex-col gap-3">
-        {messages.map((message, index) => (
-          <MessageCard
-            key={message.id}
-            message={message}
-            isLast={index === messages.length - 1}
-            defaultExpanded={index === messages.length - 1}
-          />
-        ))}
-      </div>
+      {/* Compose Modal */}
+      {composeContext && (
+        <ComposeModal
+          apiBase={apiBase}
+          context={composeContext}
+          onClose={() => setComposeContext(null)}
+          onSent={() => fetchThread()}
+        />
+      )}
     </div>
   );
 }

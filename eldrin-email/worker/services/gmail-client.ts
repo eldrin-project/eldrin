@@ -75,9 +75,17 @@ export interface ParsedEmail {
 
 // ── API calls ────────────────────────────────────────────────────────────────
 
-async function gmailFetch<T>(accessToken: string, path: string): Promise<T> {
+async function gmailFetch<T>(
+  accessToken: string,
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
   const res = await fetch(`${GMAIL_API}${path}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
+    ...init,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      ...init?.headers,
+    },
   });
 
   if (!res.ok) {
@@ -141,7 +149,9 @@ export async function getMessage(
 ): Promise<GmailRawMessage> {
   const params = new URLSearchParams({ format });
   if (format === 'metadata') {
-    params.set('metadataHeaders', 'From,To,Cc,Bcc,Subject,Message-ID,In-Reply-To,Date');
+    for (const h of ['From', 'To', 'Cc', 'Bcc', 'Subject', 'Message-ID', 'In-Reply-To', 'Date']) {
+      params.append('metadataHeaders', h);
+    }
   }
   return gmailFetch(accessToken, `/messages/${messageId}?${params}`);
 }
@@ -178,7 +188,9 @@ function parseAddressList(raw: string): string[] {
 
 function decodeBase64Url(data: string): string {
   const padded = data.replace(/-/g, '+').replace(/_/g, '/');
-  return atob(padded);
+  const binary = atob(padded);
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
 }
 
 function extractBody(part: GmailPart): { text: string | null; html: string | null } {
@@ -207,6 +219,94 @@ function hasAttachmentParts(part: GmailPart): boolean {
   if (part.parts) return part.parts.some(hasAttachmentParts);
   return false;
 }
+
+// ── Sending ──────────────────────────────────────────────────────────────────
+
+export interface SendMessageParams {
+  from: string;
+  to: string[];
+  cc?: string[];
+  bcc?: string[];
+  subject: string;
+  bodyHtml: string;
+  bodyText?: string;
+  inReplyTo?: string;
+  references?: string;
+  threadId?: string;
+}
+
+function encodeBase64Url(str: string): string {
+  return btoa(unescape(encodeURIComponent(str)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+/**
+ * Build an RFC 2822 message with multipart/alternative (text + HTML).
+ */
+function buildRawMessage(params: SendMessageParams): string {
+  const boundary = `boundary_${crypto.randomUUID().replace(/-/g, '')}`;
+  const lines: string[] = [];
+
+  lines.push(`From: ${params.from}`);
+  lines.push(`To: ${params.to.join(', ')}`);
+  if (params.cc?.length) lines.push(`Cc: ${params.cc.join(', ')}`);
+  if (params.bcc?.length) lines.push(`Bcc: ${params.bcc.join(', ')}`);
+  lines.push(`Subject: ${params.subject}`);
+  if (params.inReplyTo) lines.push(`In-Reply-To: ${params.inReplyTo}`);
+  if (params.references) lines.push(`References: ${params.references}`);
+  lines.push('MIME-Version: 1.0');
+  lines.push(`Content-Type: multipart/alternative; boundary="${boundary}"`);
+  lines.push('');
+
+  // Plain text part
+  const textBody = params.bodyText || params.bodyHtml.replace(/<[^>]*>/g, '');
+  lines.push(`--${boundary}`);
+  lines.push('Content-Type: text/plain; charset="UTF-8"');
+  lines.push('');
+  lines.push(textBody);
+  lines.push('');
+
+  // HTML part
+  lines.push(`--${boundary}`);
+  lines.push('Content-Type: text/html; charset="UTF-8"');
+  lines.push('');
+  lines.push(params.bodyHtml);
+  lines.push('');
+
+  lines.push(`--${boundary}--`);
+
+  return lines.join('\r\n');
+}
+
+interface GmailSendResponse {
+  id: string;
+  threadId: string;
+  labelIds: string[];
+}
+
+/**
+ * Send an email via Gmail API messages.send.
+ */
+export async function sendMessage(
+  accessToken: string,
+  params: SendMessageParams,
+): Promise<GmailSendResponse> {
+  const raw = buildRawMessage(params);
+  const encoded = encodeBase64Url(raw);
+
+  const body: Record<string, string> = { raw: encoded };
+  if (params.threadId) body.threadId = params.threadId;
+
+  return gmailFetch<GmailSendResponse>(accessToken, '/messages/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+// ── Parsing ──────────────────────────────────────────────────────────────────
 
 /**
  * Parse a raw Gmail API message into our normalized format.

@@ -43,7 +43,7 @@ export interface SyncResult {
 
 // ── Configuration ────────────────────────────────────────────────────────────
 
-const FIRST_SYNC_DAYS = 30;
+const DEFAULT_SYNC_DAYS = 30;
 const FIRST_SYNC_MAX_MESSAGES = 500;
 
 // ── Token management ─────────────────────────────────────────────────────────
@@ -195,13 +195,18 @@ async function insertEmail(
 // ── Core sync logic ──────────────────────────────────────────────────────────
 
 /**
- * Collect message refs for first sync (last N days, up to max messages).
+ * Collect message refs for first sync.
+ * syncDays=0 means no date filter (fetch all, up to max messages).
  */
 async function collectFirstSyncRefs(
   accessToken: string,
+  syncDays: number,
 ): Promise<GmailMessageRef[]> {
-  const since = new Date(Date.now() - FIRST_SYNC_DAYS * 24 * 60 * 60 * 1000);
-  const query = `after:${since.getFullYear()}/${since.getMonth() + 1}/${since.getDate()}`;
+  let query = '';
+  if (syncDays > 0) {
+    const since = new Date(Date.now() - syncDays * 24 * 60 * 60 * 1000);
+    query = `after:${since.getFullYear()}/${since.getMonth() + 1}/${since.getDate()}`;
+  }
 
   const refs: GmailMessageRef[] = [];
   let pageToken: string | undefined;
@@ -271,6 +276,7 @@ export async function syncMailbox(
   try {
     const accessToken = await getAccessToken(db, mailbox, env);
     const syncDepth = mailbox.syncDepth as 'full' | 'metadata' | 'thread_only';
+    const syncDays = mailbox.syncDays ?? DEFAULT_SYNC_DAYS;
 
     // Determine which messages to fetch
     let messageRefs: GmailMessageRef[];
@@ -284,13 +290,13 @@ export async function syncMailbox(
       if (cursorInvalid) {
         // Cursor expired — fall back to first sync
         console.log(`[email] Cursor invalid for ${mailbox.emailAddress}, doing full sync`);
-        messageRefs = await collectFirstSyncRefs(accessToken);
+        messageRefs = await collectFirstSyncRefs(accessToken, syncDays);
       } else {
         messageRefs = refs;
       }
     } else {
       // First sync
-      messageRefs = await collectFirstSyncRefs(accessToken);
+      messageRefs = await collectFirstSyncRefs(accessToken, syncDays);
     }
 
     // Determine the format for getMessage based on sync depth

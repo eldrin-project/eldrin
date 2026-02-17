@@ -47,7 +47,7 @@ export async function updateMailbox(
   base: string,
   headers: Headers,
   id: string,
-  data: { syncDepth?: SyncDepth },
+  data: { syncDepth?: SyncDepth; syncDays?: number },
 ): Promise<{ updated: boolean }> {
   return request(apiUrl(base, `/mailboxes/${id}`), headers, {
     method: 'PATCH',
@@ -147,18 +147,51 @@ export async function searchEmails(
   return request(apiUrl(base, `/email/search?${qs}`), headers);
 }
 
+// ── Email Sending ─────────────────────────────────────────────────────────────
+
+export interface SendEmailParams {
+  mailboxId: string;
+  to: string[];
+  cc?: string[];
+  bcc?: string[];
+  subject: string;
+  bodyHtml: string;
+  bodyText?: string;
+  inReplyTo?: string;
+  threadId?: string;
+  scheduledAt?: number;
+}
+
+export async function sendEmail(
+  base: string,
+  headers: Headers,
+  params: SendEmailParams,
+): Promise<{ id: string; status: 'sent' | 'scheduled'; threadId?: string }> {
+  return request(apiUrl(base, '/email/send'), headers, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+}
+
 /**
  * Open a popup window for Gmail OAuth flow.
- * The popup will redirect to Google, then back to our callback endpoint.
+ * Two-step: fetch a short-lived connect token (authenticated), then open popup with it.
  */
-export function connectGmail(base: string): void {
+export async function connectGmail(base: string, headers: Headers): Promise<void> {
+  const { token } = await request<{ token: string }>(
+    apiUrl(base, '/mailbox/connect-token'),
+    headers,
+    { method: 'POST' },
+  );
+
   const width = 600;
   const height = 700;
   const left = window.screenX + (window.innerWidth - width) / 2;
   const top = window.screenY + (window.innerHeight - height) / 2;
 
   window.open(
-    `${base}/api/mailbox/connect/gmail`,
+    `${base}/api/mailbox/connect/gmail?token=${encodeURIComponent(token)}`,
     'eldrin-email-gmail-connect',
     `width=${width},height=${height},left=${left},top=${top},popup=yes`,
   );

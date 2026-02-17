@@ -8,10 +8,13 @@
 import { Hono } from 'hono';
 import { eq, and, desc, asc, like, or, sql, inArray } from 'drizzle-orm';
 import { connectedMailboxes, emailThreads, emails, type Database } from '../db';
-import { now } from '../utils';
+import { generateId, now } from '../utils';
 import { fetchThreadBodies } from '../services/body-fetch';
+import { decryptToken } from '../services/crypto';
+import { refreshGmailToken } from '../services/oauth-gmail';
+import { sendMessage } from '../services/gmail-client';
 
-type Variables = { db: Database };
+type Variables = { db: Database; userId: string };
 
 export const emailRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
@@ -28,7 +31,7 @@ async function getUserMailboxIds(db: Database, userId: string): Promise<string[]
 // ── GET /api/inbox — list email threads ──────────────────────────────────────
 
 emailRoutes.get('/api/inbox', async (c) => {
-  const userId = c.req.header('X-Eldrin-User-Id');
+  const userId = c.get('userId');
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const db = c.get('db');
@@ -107,7 +110,7 @@ emailRoutes.get('/api/inbox', async (c) => {
 // ── GET /api/inbox/:threadId — get thread with all messages ──────────────────
 
 emailRoutes.get('/api/inbox/:threadId', async (c) => {
-  const userId = c.req.header('X-Eldrin-User-Id');
+  const userId = c.get('userId');
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const threadId = c.req.param('threadId');
@@ -187,7 +190,7 @@ emailRoutes.get('/api/inbox/:threadId', async (c) => {
 // ── PATCH /api/inbox/:threadId — update thread state ─────────────────────────
 
 emailRoutes.patch('/api/inbox/:threadId', async (c) => {
-  const userId = c.req.header('X-Eldrin-User-Id');
+  const userId = c.get('userId');
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const threadId = c.req.param('threadId');
@@ -224,7 +227,7 @@ emailRoutes.patch('/api/inbox/:threadId', async (c) => {
 // ── GET /api/sent — list sent emails ─────────────────────────────────────────
 
 emailRoutes.get('/api/sent', async (c) => {
-  const userId = c.req.header('X-Eldrin-User-Id');
+  const userId = c.get('userId');
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const db = c.get('db');
@@ -290,7 +293,7 @@ emailRoutes.get('/api/sent', async (c) => {
 // ── GET /api/email/search — full-text search ─────────────────────────────────
 
 emailRoutes.get('/api/email/search', async (c) => {
-  const userId = c.req.header('X-Eldrin-User-Id');
+  const userId = c.get('userId');
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const db = c.get('db');
@@ -339,4 +342,194 @@ emailRoutes.get('/api/email/search', async (c) => {
     data: results,
     pagination: { page, limit, total, pages: Math.ceil(total / limit) },
   });
+});
+
+// ── POST /api/email/send — send an email ──────────────────────────────────────
+
+emailRoutes.post('/api/email/send', async (c) => {
+  const userId = c.get('userId');
+  if (!userId) return c.json({ error: 'Unauthorized' }, 401);
+
+  const db = c.get('db');
+  const body = await c.req.json() as {
+    mailboxId: string;
+    to: string[];
+    cc?: string[];
+    bcc?: string[];
+    subject: string;
+    bodyHtml: string;
+    bodyText?: string;
+    inReplyTo?: string;
+    threadId?: string;
+    scheduledAt?: number;
+  };
+
+  // Validate required fields
+  if (!body.mailboxId || !body.to?.length || !body.subject || !body.bodyHtml) {
+    return c.json({ error: 'Missing required fields: mailboxId, to, subject, bodyHtml' }, 400);
+  }
+
+  // Verify mailbox ownership
+  const mailbox = await db.query.connectedMailboxes.findFirst({
+    where: and(
+      eq(connectedMailboxes.id, body.mailboxId),
+      eq(connectedMailboxes.userId, userId),
+    ),
+  });
+
+  if (!mailbox) return c.json({ error: 'Mailbox not found' }, 404);
+
+  // Resolve provider thread ID if replying within an existing thread
+  let providerThreadId: string | undefined;
+  let localThreadId = body.threadId;
+
+  if (localThreadId) {
+    const thread = await db.query.emailThreads.findFirst({
+      where: eq(emailThreads.id, localThreadId),
+      columns: { providerThreadId: true },
+    });
+    if (thread) providerThreadId = thread.providerThreadId;
+  }
+
+  const timestamp = now();
+  const emailId = generateId();
+
+  // If scheduled for the future, store without sending
+  if (body.scheduledAt && body.scheduledAt > timestamp) {
+    // Create or find thread for the scheduled email
+    if (!localThreadId) {
+      localThreadId = generateId();
+      await db.insert(emailThreads).values({
+        id: localThreadId,
+        mailboxId: mailbox.id,
+        providerThreadId: `local-${localThreadId}`,
+        subject: body.subject,
+        lastMessageAt: timestamp,
+        messageCount: 1,
+        isRead: true,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      });
+    }
+
+    await db.insert(emails).values({
+      id: emailId,
+      threadId: localThreadId,
+      mailboxId: mailbox.id,
+      providerMessageId: `scheduled-${emailId}`,
+      messageId: `<${emailId}@eldrin-email.local>`,
+      inReplyTo: body.inReplyTo ?? null,
+      fromAddress: mailbox.emailAddress,
+      fromName: mailbox.displayName,
+      toAddresses: JSON.stringify(body.to),
+      ccAddresses: JSON.stringify(body.cc ?? []),
+      bccAddresses: JSON.stringify(body.bcc ?? []),
+      subject: body.subject,
+      bodyText: body.bodyText ?? null,
+      bodyHtml: body.bodyHtml,
+      snippet: (body.bodyText ?? body.bodyHtml.replace(/<[^>]*>/g, '')).slice(0, 200),
+      hasAttachments: false,
+      direction: 'outbound',
+      sentAt: null,
+      receivedAt: timestamp,
+      labels: JSON.stringify([]),
+      isRead: true,
+      status: 'scheduled',
+      scheduledAt: body.scheduledAt,
+      createdAt: timestamp,
+    });
+
+    return c.json({ id: emailId, status: 'scheduled', scheduledAt: body.scheduledAt });
+  }
+
+  // Send immediately via Gmail API
+  let accessToken = await decryptToken(mailbox.accessTokenEncrypted, c.env.JWT_SECRET);
+
+  // Refresh if expired
+  if (mailbox.tokenExpiresAt <= timestamp) {
+    const refreshToken = await decryptToken(mailbox.refreshTokenEncrypted, c.env.JWT_SECRET);
+    const refreshed = await refreshGmailToken(
+      refreshToken,
+      c.env.GOOGLE_CLIENT_ID,
+      c.env.GOOGLE_CLIENT_SECRET,
+    );
+    accessToken = refreshed.accessToken;
+
+    const newEncrypted = await (await import('../services/crypto')).encryptToken(
+      refreshed.accessToken,
+      c.env.JWT_SECRET,
+    );
+    await db.update(connectedMailboxes)
+      .set({
+        accessTokenEncrypted: newEncrypted,
+        tokenExpiresAt: timestamp + refreshed.expiresIn * 1000,
+        updatedAt: timestamp,
+      })
+      .where(eq(connectedMailboxes.id, mailbox.id));
+  }
+
+  const gmailResult = await sendMessage(accessToken, {
+    from: mailbox.emailAddress,
+    to: body.to,
+    cc: body.cc,
+    bcc: body.bcc,
+    subject: body.subject,
+    bodyHtml: body.bodyHtml,
+    bodyText: body.bodyText,
+    inReplyTo: body.inReplyTo,
+    threadId: providerThreadId,
+  });
+
+  // Create or update thread
+  if (!localThreadId) {
+    localThreadId = generateId();
+    await db.insert(emailThreads).values({
+      id: localThreadId,
+      mailboxId: mailbox.id,
+      providerThreadId: gmailResult.threadId,
+      subject: body.subject,
+      lastMessageAt: timestamp,
+      messageCount: 1,
+      isRead: true,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+  } else {
+    await db.update(emailThreads)
+      .set({
+        lastMessageAt: timestamp,
+        messageCount: sql`${emailThreads.messageCount} + 1`,
+        updatedAt: timestamp,
+      })
+      .where(eq(emailThreads.id, localThreadId));
+  }
+
+  // Store sent email
+  await db.insert(emails).values({
+    id: emailId,
+    threadId: localThreadId,
+    mailboxId: mailbox.id,
+    providerMessageId: gmailResult.id,
+    messageId: `<${gmailResult.id}@gmail.com>`,
+    inReplyTo: body.inReplyTo ?? null,
+    fromAddress: mailbox.emailAddress,
+    fromName: mailbox.displayName,
+    toAddresses: JSON.stringify(body.to),
+    ccAddresses: JSON.stringify(body.cc ?? []),
+    bccAddresses: JSON.stringify(body.bcc ?? []),
+    subject: body.subject,
+    bodyText: body.bodyText ?? null,
+    bodyHtml: body.bodyHtml,
+    snippet: (body.bodyText ?? body.bodyHtml.replace(/<[^>]*>/g, '')).slice(0, 200),
+    hasAttachments: false,
+    direction: 'outbound',
+    sentAt: timestamp,
+    receivedAt: timestamp,
+    labels: JSON.stringify(['SENT']),
+    isRead: true,
+    status: 'sent',
+    createdAt: timestamp,
+  });
+
+  return c.json({ id: emailId, status: 'sent', threadId: localThreadId });
 });

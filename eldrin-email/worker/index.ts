@@ -9,6 +9,7 @@ import { handleScheduled } from './cron';
 
 type Variables = {
   db: Database;
+  userId: string;
 };
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();
@@ -19,12 +20,33 @@ app.use(
   cors({
     origin: '*',
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
+    allowHeaders: ['Content-Type', 'Authorization', 'X-Eldrin-User-Id'],
   }),
 );
 
 // Health check (public, before migration middleware)
 app.get('/health', (c) => c.json({ status: 'ok', app: 'eldrin-email' }));
+
+// Auth: resolve userId from header (production proxy) or Bearer JWT (dev mode).
+// In production, the shell proxy verifies the JWT and injects X-Eldrin-User-Id.
+// In dev mode (cross-origin), the JWT comes directly from the shell.
+app.use('/api/*', async (c, next) => {
+  const headerUserId = c.req.header('X-Eldrin-User-Id');
+  if (headerUserId) {
+    c.set('userId', headerUserId);
+  } else {
+    const auth = c.req.header('Authorization');
+    if (auth?.startsWith('Bearer ')) {
+      try {
+        const payload = JSON.parse(atob(auth.slice(7).split('.')[1]));
+        if (payload.sub) {
+          c.set('userId', payload.sub);
+        }
+      } catch { /* invalid JWT — let route handlers return 401 */ }
+    }
+  }
+  await next();
+});
 
 // Migration runner + database context
 let migrationsComplete = false;

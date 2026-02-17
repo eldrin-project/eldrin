@@ -84,6 +84,28 @@
       { "label": "Templates", "icon": "file-text", "path": "/eldrin-email/templates" }
     ]
   },
+  "settings": {
+    "groups": [
+      {
+        "key": "GOOGLE",
+        "label": "Google OAuth",
+        "description": "OAuth 2.0 credentials for Gmail integration",
+        "fields": [
+          { "key": "CLIENT_ID", "label": "Client ID", "type": "string", "storage": "config", "required": true, "description": "Google OAuth 2.0 Client ID", "placeholder": "123456789.apps.googleusercontent.com" },
+          { "key": "CLIENT_SECRET", "label": "Client Secret", "type": "string", "storage": "secret", "required": true, "description": "Google OAuth 2.0 Client Secret" }
+        ]
+      },
+      {
+        "key": "MICROSOFT",
+        "label": "Microsoft OAuth",
+        "description": "OAuth 2.0 credentials for Outlook/Microsoft 365 integration",
+        "fields": [
+          { "key": "CLIENT_ID", "label": "Client ID", "type": "string", "storage": "config", "required": true, "description": "Microsoft Entra application (client) ID", "placeholder": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" },
+          { "key": "CLIENT_SECRET", "label": "Client Secret", "type": "string", "storage": "secret", "required": true, "description": "Microsoft Entra client secret value" }
+        ]
+      }
+    ]
+  },
   "events": {
     "emits": [
       {

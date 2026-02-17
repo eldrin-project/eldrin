@@ -7,6 +7,16 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Dev mode: mock shell context so useAuthHeaders() works standalone -->
+    <script>
+      if (!window.__ELDRIN__) {
+        window.__ELDRIN__ = {
+          getAuthHeaders: function() {
+            return { 'X-Eldrin-User-Id': 'dev-user-1' };
+          }
+        };
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -11,19 +11,43 @@ import {
 } from '../services/oauth-gmail';
 import { syncMailbox } from '../services/email-sync';
 
-type Variables = { db: Database };
+type Variables = { db: Database; userId: string };
 
 export const mailboxRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
+
+// ── POST /api/mailbox/connect-token — create short-lived token for OAuth popup ─
+
+const CONNECT_TOKEN_TTL = 5 * 60 * 1000; // 5 minutes
+
+mailboxRoutes.post('/api/mailbox/connect-token', async (c) => {
+  const userId = c.get('userId');
+  if (!userId) return c.json({ error: 'Unauthorized' }, 401);
+
+  const payload = JSON.stringify({ userId, expiresAt: now() + CONNECT_TOKEN_TTL });
+  const token = await encryptToken(payload, c.env.JWT_SECRET);
+
+  return c.json({ token });
+});
 
 // ── GET /api/mailbox/connect/gmail — redirect to Google OAuth ────────────────
 
 mailboxRoutes.get('/api/mailbox/connect/gmail', async (c) => {
-  const userId = c.req.header('X-Eldrin-User-Id');
-  if (!userId) return c.json({ error: 'Unauthorized' }, 401);
+  const connectToken = c.req.query('token');
+  if (!connectToken) return c.json({ error: 'Missing token' }, 400);
+
+  let userId: string;
+  try {
+    const payload = JSON.parse(await decryptToken(connectToken, c.env.JWT_SECRET));
+    if (payload.expiresAt < now()) {
+      return c.json({ error: 'Token expired' }, 401);
+    }
+    userId = payload.userId;
+  } catch {
+    return c.json({ error: 'Invalid token' }, 401);
+  }
 
   const redirectUri = new URL('/api/mailbox/callback/gmail', c.req.url).toString();
 
-  // State encodes user ID for the callback (CSRF protection via platform proxy)
   const state = btoa(JSON.stringify({ userId, ts: now() }));
 
   const authUrl = getGmailAuthUrl(c.env.GOOGLE_CLIENT_ID, redirectUri, state);
@@ -149,7 +173,7 @@ mailboxRoutes.get('/api/mailbox/callback/gmail', async (c) => {
 // ── GET /api/mailboxes — list user's connected mailboxes ─────────────────────
 
 mailboxRoutes.get('/api/mailboxes', async (c) => {
-  const userId = c.req.header('X-Eldrin-User-Id');
+  const userId = c.get('userId');
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const db = c.get('db');
@@ -163,6 +187,7 @@ mailboxRoutes.get('/api/mailboxes', async (c) => {
       lastSyncAt: true,
       syncStatus: true,
       syncDepth: true,
+      syncDays: true,
       errorMessage: true,
       createdAt: true,
       updatedAt: true,
@@ -176,7 +201,7 @@ mailboxRoutes.get('/api/mailboxes', async (c) => {
 // ── DELETE /api/mailboxes/:id — disconnect mailbox ───────────────────────────
 
 mailboxRoutes.delete('/api/mailboxes/:id', async (c) => {
-  const userId = c.req.header('X-Eldrin-User-Id');
+  const userId = c.get('userId');
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const id = c.req.param('id');
@@ -207,15 +232,18 @@ mailboxRoutes.delete('/api/mailboxes/:id', async (c) => {
 // ── PATCH /api/mailboxes/:id — update mailbox settings ───────────────────────
 
 mailboxRoutes.patch('/api/mailboxes/:id', async (c) => {
-  const userId = c.req.header('X-Eldrin-User-Id');
+  const userId = c.get('userId');
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const id = c.req.param('id');
-  const body = await c.req.json() as { syncDepth?: string };
+  const body = await c.req.json() as { syncDepth?: string; syncDays?: number };
 
   const validDepths = ['full', 'metadata', 'thread_only'];
   if (body.syncDepth && !validDepths.includes(body.syncDepth)) {
     return c.json({ error: `Invalid sync depth. Must be one of: ${validDepths.join(', ')}` }, 400);
+  }
+  if (body.syncDays !== undefined && (typeof body.syncDays !== 'number' || body.syncDays < 0)) {
+    return c.json({ error: 'syncDays must be a non-negative number (0 = all)' }, 400);
   }
 
   const db = c.get('db');
@@ -231,6 +259,7 @@ mailboxRoutes.patch('/api/mailboxes/:id', async (c) => {
 
   const updates: Record<string, unknown> = { updatedAt: now() };
   if (body.syncDepth) updates.syncDepth = body.syncDepth;
+  if (body.syncDays !== undefined) updates.syncDays = body.syncDays;
 
   await db.update(connectedMailboxes)
     .set(updates)
@@ -242,7 +271,7 @@ mailboxRoutes.patch('/api/mailboxes/:id', async (c) => {
 // ── POST /api/mailboxes/:id/pause — pause sync ──────────────────────────────
 
 mailboxRoutes.post('/api/mailboxes/:id/pause', async (c) => {
-  const userId = c.req.header('X-Eldrin-User-Id');
+  const userId = c.get('userId');
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const id = c.req.param('id');
@@ -267,7 +296,7 @@ mailboxRoutes.post('/api/mailboxes/:id/pause', async (c) => {
 // ── POST /api/mailboxes/:id/resume — resume sync ────────────────────────────
 
 mailboxRoutes.post('/api/mailboxes/:id/resume', async (c) => {
-  const userId = c.req.header('X-Eldrin-User-Id');
+  const userId = c.get('userId');
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const id = c.req.param('id');
@@ -294,7 +323,7 @@ mailboxRoutes.post('/api/mailboxes/:id/resume', async (c) => {
 const SYNC_COOLDOWN_MS = 60_000; // 60 seconds between manual syncs
 
 mailboxRoutes.post('/api/mailboxes/:id/sync', async (c) => {
-  const userId = c.req.header('X-Eldrin-User-Id');
+  const userId = c.get('userId');
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const id = c.req.param('id');

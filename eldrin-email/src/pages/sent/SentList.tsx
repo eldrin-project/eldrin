@@ -79,7 +79,7 @@ export function SentList({ apiBase, onNavigate }: SentListProps) {
 
   if (!loading && emails.length === 0 && !search) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-base-content/50">
+      <div className="flex flex-col items-center justify-center h-full text-base-content/50">
         <Send className="w-12 h-12 mb-4 opacity-30" />
         <h2 className="text-lg font-semibold mb-1">No sent emails</h2>
         <p className="text-sm">Sent emails will appear here once you start sending.</p>
@@ -88,104 +88,108 @@ export function SentList({ apiBase, onNavigate }: SentListProps) {
   }
 
   return (
-    <div className="max-w-4xl">
-      {/* Toolbar */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 pointer-events-none z-10" />
-          <input
-            className="input input-bordered input-sm w-full pl-9"
-            placeholder="Search sent..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
-        </div>
+    <div className="flex flex-col h-full">
+      {/* Sticky toolbar */}
+      <div className="flex-shrink-0 px-4 sm:px-6 pt-4 pb-3 border-b border-base-300">
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 pointer-events-none z-10" />
+            <input
+              className="input input-bordered input-sm w-full pl-9"
+              placeholder="Search sent..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+          </div>
 
-        <button
-          className="btn btn-sm btn-ghost gap-1"
-          onClick={() => fetchSent(pagination.page)}
-          disabled={loading}
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-        </button>
+          <button
+            className="btn btn-sm btn-ghost gap-1"
+            onClick={() => fetchSent(pagination.page)}
+            disabled={loading}
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
-      {/* Email list */}
-      {loading && emails.length === 0 ? (
-        <div className="flex justify-center py-16">
-          <span className="loading loading-spinner loading-md" />
-        </div>
-      ) : emails.length === 0 ? (
-        <div className="flex flex-col items-center py-16 text-base-content/50">
-          <Send className="w-10 h-10 mb-3 opacity-30" />
-          <p className="text-sm">No sent emails match your search.</p>
-        </div>
-      ) : (
-        <div className="border border-base-300 rounded-box divide-y divide-base-300 overflow-hidden">
-          {emails.map((email) => (
-            <button
-              key={email.id}
-              onClick={() => onNavigate(`/eldrin-email/inbox/${email.threadId}`)}
-              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-base-200 transition-colors"
-            >
-              {/* Avatar */}
-              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center">
-                <Send className="w-4 h-4 text-accent" />
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <div className="text-sm truncate">
-                  To: {recipientDisplay(email.toAddresses)}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm text-base-content/70 truncate">
-                    {email.subject || '(no subject)'}
-                  </span>
-                  {email.snippet && (
-                    <span className="text-sm text-base-content/40 truncate hidden sm:inline">
-                      — {email.snippet}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Date */}
-              <span className="text-xs text-base-content/50 whitespace-nowrap flex-shrink-0">
-                {formatDate(email.sentAt)}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {pagination.pages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <span className="text-sm text-base-content/50">
-            {pagination.total} email{pagination.total !== 1 ? 's' : ''}
-          </span>
-          <div className="join">
-            <button
-              className="join-item btn btn-sm"
-              disabled={pagination.page <= 1}
-              onClick={() => fetchSent(pagination.page - 1)}
-            >
-              Previous
-            </button>
-            <button className="join-item btn btn-sm btn-disabled">
-              {pagination.page} / {pagination.pages}
-            </button>
-            <button
-              className="join-item btn btn-sm"
-              disabled={pagination.page >= pagination.pages}
-              onClick={() => fetchSent(pagination.page + 1)}
-            >
-              Next
-            </button>
+      {/* Scrollable email list */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        {loading && emails.length === 0 ? (
+          <div className="flex justify-center items-center h-full">
+            <span className="loading loading-spinner loading-md" />
           </div>
-        </div>
-      )}
+        ) : emails.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-base-content/50">
+            <Send className="w-10 h-10 mb-3 opacity-30" />
+            <p className="text-sm">No sent emails match your search.</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-base-300">
+            {emails.map((email) => (
+              <button
+                key={email.id}
+                onClick={() => onNavigate(`/eldrin-email/inbox/${email.threadId}`)}
+                className="w-full flex items-center gap-3 px-4 sm:px-6 py-3 text-left hover:bg-base-200 transition-colors"
+              >
+                {/* Avatar */}
+                <div className="flex-shrink-0 w-9 h-9 rounded-full bg-accent/10 flex items-center justify-center">
+                  <Send className="w-4 h-4 text-accent" />
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm truncate">
+                    To: {recipientDisplay(email.toAddresses)}
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm text-base-content/70 truncate">
+                      {email.subject || '(no subject)'}
+                    </span>
+                    {email.snippet && (
+                      <span className="text-sm text-base-content/40 truncate hidden sm:inline">
+                        — {email.snippet}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Date */}
+                <span className="text-xs text-base-content/50 whitespace-nowrap flex-shrink-0">
+                  {formatDate(email.sentAt)}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {pagination.pages > 1 && (
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-t border-base-300">
+            <span className="text-sm text-base-content/50">
+              {pagination.total} email{pagination.total !== 1 ? 's' : ''}
+            </span>
+            <div className="join">
+              <button
+                className="join-item btn btn-sm"
+                disabled={pagination.page <= 1}
+                onClick={() => fetchSent(pagination.page - 1)}
+              >
+                Previous
+              </button>
+              <button className="join-item btn btn-sm btn-disabled">
+                {pagination.page} / {pagination.pages}
+              </button>
+              <button
+                className="join-item btn btn-sm"
+                disabled={pagination.page >= pagination.pages}
+                onClick={() => fetchSent(pagination.page + 1)}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -17,6 +17,7 @@ export const connectedMailboxes = sqliteTable(
     syncStatus: text('sync_status').notNull().default('active'), // active | paused | error
     syncDepth: text('sync_depth').notNull().default('metadata'), // full | metadata | thread_only
     syncCursor: text('sync_cursor'),
+    syncDays: integer('sync_days', { mode: 'number' }).notNull().default(30), // 0 = all
     errorMessage: text('error_message'),
     createdAt: integer('created_at', { mode: 'number' }).notNull(),
     updatedAt: integer('updated_at', { mode: 'number' }).notNull(),
@@ -83,6 +84,8 @@ export const emails = sqliteTable(
     receivedAt: integer('received_at', { mode: 'number' }).notNull(),
     labels: text('labels'), // JSON array
     isRead: integer('is_read', { mode: 'boolean' }).notNull().default(false),
+    status: text('status').notNull().default('sent'), // sent | scheduled | draft
+    scheduledAt: integer('scheduled_at', { mode: 'number' }),
     createdAt: integer('created_at', { mode: 'number' }).notNull(),
   },
   (table) => [
@@ -90,6 +93,7 @@ export const emails = sqliteTable(
     index('idx_emails_mailbox_received').on(table.mailboxId, table.receivedAt),
     index('idx_emails_from').on(table.fromAddress),
     index('idx_emails_is_read').on(table.isRead),
+    index('idx_emails_status').on(table.status, table.scheduledAt),
   ],
 );
 

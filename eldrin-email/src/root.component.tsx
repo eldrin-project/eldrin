@@ -111,10 +111,14 @@ export function Root({ manifest }: RootProps) {
   };
 
   return (
-    <div data-theme={daisyTheme} className="font-sans p-6">
+    <div
+      data-theme={daisyTheme}
+      className="font-sans flex flex-col overflow-hidden"
+      style={{ height: 'calc(100dvh - var(--layout-topbar-height, 56px) - 48px)' }}
+    >
       {/* Standalone mode: show inline nav tabs */}
       {!manifest && (
-        <div className="flex gap-1 mb-6 border-b border-base-300 pb-2">
+        <div className="flex gap-1 border-b border-base-300 pb-2 pt-2 px-4 sm:px-6 flex-shrink-0">
           {sections.map((s) => (
             <button
               key={s.page}
@@ -136,7 +140,9 @@ export function Root({ manifest }: RootProps) {
         </div>
       )}
 
-      {renderPage()}
+      <div className="flex-1 min-h-0">
+        {renderPage()}
+      </div>
 
       <Toaster
         position="bottom-right"
