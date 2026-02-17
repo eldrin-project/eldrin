@@ -14,5 +14,8 @@
       "database_name": "eldrin-email-db",
       "database_id": "local"
     }
-  ]
+  ],
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  }
 }

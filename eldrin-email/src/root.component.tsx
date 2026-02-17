@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Inbox, Send, FileText, Settings } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { InboxList } from './pages/inbox/InboxList';
+import { ThreadView } from './pages/inbox/ThreadView';
 import { SentList } from './pages/sent/SentList';
 import { TemplateList } from './pages/templates/TemplateList';
 import { MailboxSettings } from './pages/settings/MailboxSettings';
@@ -88,15 +89,24 @@ export function Root({ manifest }: RootProps) {
   const renderPage = () => {
     switch (route.section) {
       case 'inbox':
-        return <InboxList />;
+        if (route.id) {
+          return (
+            <ThreadView
+              apiBase={apiBase}
+              threadId={route.id}
+              onNavigate={navigate}
+            />
+          );
+        }
+        return <InboxList apiBase={apiBase} onNavigate={navigate} />;
       case 'sent':
-        return <SentList />;
+        return <SentList apiBase={apiBase} onNavigate={navigate} />;
       case 'templates':
         return <TemplateList />;
       case 'settings':
         return <MailboxSettings apiBase={apiBase} />;
       default:
-        return <InboxList />;
+        return <InboxList apiBase={apiBase} onNavigate={navigate} />;
     }
   };
 

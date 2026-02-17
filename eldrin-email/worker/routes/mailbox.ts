@@ -9,6 +9,7 @@ import {
   getGoogleUserInfo,
   revokeGmailToken,
 } from '../services/oauth-gmail';
+import { syncMailbox } from '../services/email-sync';
 
 type Variables = { db: Database };
 
@@ -286,4 +287,41 @@ mailboxRoutes.post('/api/mailboxes/:id/resume', async (c) => {
     .where(eq(connectedMailboxes.id, id));
 
   return c.json({ updated: true });
+});
+
+// ── POST /api/mailboxes/:id/sync — trigger immediate sync ────────────────────
+
+const SYNC_COOLDOWN_MS = 60_000; // 60 seconds between manual syncs
+
+mailboxRoutes.post('/api/mailboxes/:id/sync', async (c) => {
+  const userId = c.req.header('X-Eldrin-User-Id');
+  if (!userId) return c.json({ error: 'Unauthorized' }, 401);
+
+  const id = c.req.param('id');
+  const db = c.get('db');
+
+  const mailbox = await db.query.connectedMailboxes.findFirst({
+    where: and(
+      eq(connectedMailboxes.id, id),
+      eq(connectedMailboxes.userId, userId),
+    ),
+  });
+
+  if (!mailbox) return c.json({ error: 'Mailbox not found' }, 404);
+
+  // Rate limit: max once per 60 seconds
+  if (mailbox.lastSyncAt && now() - mailbox.lastSyncAt < SYNC_COOLDOWN_MS) {
+    const retryAfter = Math.ceil((SYNC_COOLDOWN_MS - (now() - mailbox.lastSyncAt)) / 1000);
+    return c.json({ error: `Please wait ${retryAfter}s before syncing again` }, 429);
+  }
+
+  const result = await syncMailbox(db, mailbox, c.env);
+
+  return c.json({
+    synced: true,
+    messagesProcessed: result.messagesProcessed,
+    emailsInserted: result.emailsInserted,
+    threadsCreated: result.threadsCreated,
+    errors: result.errors.length,
+  });
 });

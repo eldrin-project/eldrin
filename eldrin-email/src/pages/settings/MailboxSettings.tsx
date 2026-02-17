@@ -10,6 +10,7 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
+  Loader2,
 } from 'lucide-react';
 import type { Mailbox, SyncDepth } from '../../types/mailbox';
 import * as api from '../../api';
@@ -82,6 +83,7 @@ export function MailboxSettings({ apiBase }: MailboxSettingsProps) {
   const [mailboxes, setMailboxes] = useState<Mailbox[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
 
   const fetchMailboxes = useCallback(async () => {
     try {
@@ -145,6 +147,19 @@ export function MailboxSettings({ apiBase }: MailboxSettingsProps) {
       fetchMailboxes();
     } catch {
       toast.error('Failed to update sync depth');
+    }
+  }
+
+  async function handleSyncNow(mailbox: Mailbox) {
+    setSyncingId(mailbox.id);
+    try {
+      const result = await api.syncMailboxNow(apiBase, authHeaders, mailbox.id);
+      toast.success(`Synced: ${result.emailsInserted} new email(s)`);
+      fetchMailboxes();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Sync failed');
+    } finally {
+      setSyncingId(null);
     }
   }
 
@@ -241,6 +256,25 @@ export function MailboxSettings({ apiBase }: MailboxSettingsProps) {
                       </option>
                     ))}
                   </select>
+
+                  {/* Sync Now */}
+                  <button
+                    className="btn btn-sm btn-ghost gap-1"
+                    disabled={syncingId === mailbox.id || mailbox.syncStatus === 'paused'}
+                    onClick={() => handleSyncNow(mailbox)}
+                  >
+                    {syncingId === mailbox.id ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Syncing...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4" />
+                        Sync now
+                      </>
+                    )}
+                  </button>
 
                   <div className="flex-1" />
 

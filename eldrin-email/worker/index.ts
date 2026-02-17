@@ -4,6 +4,8 @@ import { runMigrations } from '@eldrin-project/eldrin-app-core';
 import migrations from './migrations.generated';
 import { createDb, type Database } from './db';
 import { mailboxRoutes } from './routes/mailbox';
+import { emailRoutes } from './routes/emails';
+import { handleScheduled } from './cron';
 
 type Variables = {
   db: Database;
@@ -49,7 +51,11 @@ app.use('/api/*', async (c, next) => {
 });
 
 // Phase 2: Mailbox connection (Gmail OAuth)
+// Phase 3: Sync routes (manual sync trigger)
 app.route('', mailboxRoutes);
+
+// Phase 4: Inbox, thread, sent, search routes
+app.route('', emailRoutes);
 
 // Event webhook handler (receives platform events)
 app.post('/api/_events/webhook', async (c) => {
@@ -64,4 +70,9 @@ app.get('*', async (c) => {
   return c.env.ASSETS.fetch(c.req.raw);
 });
 
-export default app;
+export default {
+  fetch: app.fetch,
+  scheduled: async (_event: ScheduledEvent, env: Env) => {
+    await handleScheduled(env);
+  },
+};

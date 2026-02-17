@@ -22,3 +22,5 @@ worker/migrations.generated.ts
 .wrangler
 .dev.vars*
 .env*
+
+private/*
