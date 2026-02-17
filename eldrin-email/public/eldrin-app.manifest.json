@@ -1,0 +1,136 @@
+{
+  "id": "eldrin-email",
+  "name": "Email",
+  "version": "0.0.1",
+  "entry": "/eldrin-email.js",
+  "styles": "/eldrin-email.css",
+  "developer_id": "eldrin.io",
+  "developer": {
+    "id": "eldrin.io",
+    "name": "Eldrin Team"
+  },
+  "compatibility": {
+    "core": ">=0.1.0"
+  },
+  "permissions": [
+    { "resource": "mailboxes", "actions": ["read", "create", "delete"] },
+    { "resource": "emails", "actions": ["read", "send"] },
+    { "resource": "templates", "actions": ["read", "create", "update", "delete"] },
+    { "resource": "tracking", "actions": ["read"] }
+  ],
+  "groups": [
+    {
+      "id": "admin",
+      "name": "Admin",
+      "description": "Full access to all email features including mailbox management",
+      "permissions": ["*:*"]
+    },
+    {
+      "id": "user",
+      "name": "User",
+      "description": "Send and receive email, manage own mailbox and templates",
+      "permissions": [
+        "mailboxes:read", "mailboxes:create", "mailboxes:delete",
+        "emails:read", "emails:send",
+        "templates:read", "templates:create", "templates:update", "templates:delete",
+        "tracking:read"
+      ]
+    },
+    {
+      "id": "viewer",
+      "name": "Viewer",
+      "description": "Read-only access to emails and templates",
+      "permissions": [
+        "emails:read",
+        "templates:read",
+        "tracking:read"
+      ]
+    }
+  ],
+  "api": {
+    "defaultPolicy": "deny",
+    "publicRoutes": [
+      "/health",
+      "/api/track/:trackingId/pixel.gif",
+      "/api/track/:trackingId/click"
+    ],
+    "routes": [
+      { "method": "GET", "path": "/api/mailboxes", "permission": "mailboxes:read" },
+      { "method": "POST", "path": "/api/mailboxes/connect", "permission": "mailboxes:create" },
+      { "method": "DELETE", "path": "/api/mailboxes/:id", "permission": "mailboxes:delete" },
+      { "method": "POST", "path": "/api/mailboxes/:id/sync", "permission": "mailboxes:read" },
+      { "method": "GET", "path": "/api/threads", "permission": "emails:read" },
+      { "method": "GET", "path": "/api/threads/:id", "permission": "emails:read" },
+      { "method": "GET", "path": "/api/emails", "permission": "emails:read" },
+      { "method": "GET", "path": "/api/emails/:id", "permission": "emails:read" },
+      { "method": "POST", "path": "/api/email/send", "permission": "emails:send" },
+      { "method": "POST", "path": "/api/email/send-template", "permission": "emails:send" },
+      { "method": "GET", "path": "/api/email/history", "permission": "emails:read" },
+      { "method": "GET", "path": "/api/templates", "permission": "templates:read" },
+      { "method": "POST", "path": "/api/templates", "permission": "templates:create" },
+      { "method": "PUT", "path": "/api/templates/:id", "permission": "templates:update" },
+      { "method": "DELETE", "path": "/api/templates/:id", "permission": "templates:delete" }
+    ]
+  },
+  "database": {
+    "name": "eldrin-email-db",
+    "migrationsPath": "migrations",
+    "handledBy": "worker"
+  },
+  "ui": {
+    "sideNav": [
+      { "label": "Inbox", "icon": "inbox", "path": "/eldrin-email" },
+      { "label": "Sent", "icon": "send", "path": "/eldrin-email/sent" },
+      { "label": "Templates", "icon": "file-text", "path": "/eldrin-email/templates" }
+    ]
+  },
+  "events": {
+    "emits": [
+      {
+        "type": "email.received",
+        "description": "New email synced from provider",
+        "payload": { "messageId": "string", "threadId": "string", "from": "string", "to": "string", "subject": "string", "snippet": "string", "receivedAt": "string" }
+      },
+      {
+        "type": "email.sent",
+        "description": "Email sent through platform",
+        "payload": { "messageId": "string", "from": "string", "to": "string", "subject": "string", "templateId": "string?", "relatedApp": "string?", "relatedRecordId": "string?" }
+      },
+      {
+        "type": "email.opened",
+        "description": "Tracking pixel loaded by recipient",
+        "payload": { "messageId": "string", "recipientEmail": "string", "openedAt": "string" }
+      },
+      {
+        "type": "email.clicked",
+        "description": "Tracked link clicked by recipient",
+        "payload": { "messageId": "string", "recipientEmail": "string", "url": "string", "clickedAt": "string" }
+      },
+      {
+        "type": "email.bounced",
+        "description": "Email delivery failure",
+        "payload": { "messageId": "string", "recipientEmail": "string", "bounceType": "string", "reason": "string" }
+      },
+      {
+        "type": "email.mailbox.connected",
+        "description": "New mailbox connected",
+        "payload": { "mailboxId": "string", "provider": "string", "emailAddress": "string", "userId": "string" }
+      },
+      {
+        "type": "email.mailbox.disconnected",
+        "description": "Mailbox removed",
+        "payload": { "mailboxId": "string", "provider": "string", "emailAddress": "string" }
+      },
+      {
+        "type": "email.mailbox.error",
+        "description": "Sync error on a mailbox",
+        "payload": { "mailboxId": "string", "provider": "string", "errorMessage": "string" }
+      }
+    ],
+    "subscribes": [
+      { "pattern": "email.send.requested", "delivery": "push" },
+      { "pattern": "user.deleted", "delivery": "push" },
+      { "pattern": "*", "delivery": "push" }
+    ]
+  }
+}
