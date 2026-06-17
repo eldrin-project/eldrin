@@ -117,7 +117,12 @@ its environment and sends the key on every Factorial call.
   fields, so the stored `job_title`/`team_id` columns are nullable and populated only
   when present (kept for forward-compat; `raw_json` retains the full payload).
 
-## Data model (D1, `migrations/001-init.sql`)
+## Data model (D1, `migrations/20260617000000-init.sql`)
+
+> Migration filenames must use a 14-digit timestamp prefix
+> (`YYYYMMDDHHMMSS-<kebab>.sql`) — `eldrin-app-core` silently skips any file that
+> doesn't match `/^\d{14}-[a-z0-9-]+\.sql$/`. The initial draft used
+> `001-init.sql`, which was skipped at runtime; renamed during the live gate.
 
 Company-scoped (no per-user partitioning) since credentials are company-level.
 

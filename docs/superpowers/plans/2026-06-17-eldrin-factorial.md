@@ -19,6 +19,7 @@
 - Validated resource endpoints: employees `/api/2026-04-01/resources/employees/employees?only_active=true`; projects `/api/2026-04-01/resources/project_management/projects`; teams `/api/2026-04-01/resources/teams/teams`; time off `/api/2026-04-01/resources/timeoff/leaves`.
 - Validated employee payload fields: `id`, `first_name`, `last_name`, `full_name`, `email`, `manager_id` (NO top-level `job_title`/`team_id` — those columns stay nullable).
 - Worker env vars: `FACTORIAL_API_BASE_URL` (config), `FACTORIAL_API_KEY` (secret), plus platform `DB`, `ASSETS`, `JWT_SECRET`, optional `ELDRIN_CORE_URL`.
+- **Migration filename MUST be `YYYYMMDDHHMMSS-<kebab>.sql`** (14-digit timestamp prefix). `eldrin-app-core`'s `isValidMigrationFilename` enforces `/^\d{14}-[a-z0-9-]+\.sql$/` and SILENTLY SKIPS any non-matching file ("No migration files found") — tables then never get created. Use e.g. `20260617000000-init.sql`, NOT `001-init.sql`. (Discovered during the Task 12 live gate.)
 - Shell auth: resolve `userId` from `X-Eldrin-User-Id` header (prod) or Bearer JWT (dev). `/health` is public; all `/api/*` require an authenticated user.
 - Immutable patterns, files < 800 lines (target 200–400), errors handled explicitly and never swallowed, inputs validated at boundaries (project global rules).
 - TDD: write failing test first, watch it fail, implement minimal, watch it pass, commit. Target 80%+ coverage.
