@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { app } from '../index';
 
 function req(env: Partial<Env>) {
@@ -15,6 +15,17 @@ function makeDb() {
 }
 
 describe('GET /api/connection', () => {
+  beforeEach(() => {
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.spyOn(console, 'info').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('reports not configured when env vars missing', async () => {
     const res = await req({ FACTORIAL_API_BASE_URL: '', FACTORIAL_API_KEY: '' });
     expect(res.status).toBe(200);
