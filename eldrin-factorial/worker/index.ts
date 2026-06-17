@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import { runMigrations } from '@eldrin-project/eldrin-app-core';
 import migrations from './migrations.generated';
 import { createDb, type Database } from './db';
+import { connectionRoutes } from './routes/connection';
 
 type Variables = { db: Database; userId: string };
 
@@ -48,6 +49,8 @@ app.use('/api/*', async (c, next) => {
   c.set('db', createDb(c.env as unknown as Record<string, unknown>));
   await next();
 });
+
+app.route('', connectionRoutes);
 
 app.get('*', async (c) => c.env.ASSETS.fetch(c.req.raw));
 
