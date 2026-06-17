@@ -1,1 +1,28 @@
 credentials.md
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.sw?
+
+# Generated
+worker/migrations.generated.ts
+
+# Wrangler
+.wrangler
+.dev.vars*
+.env*
+
+private/*
