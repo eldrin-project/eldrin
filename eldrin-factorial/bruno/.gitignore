@@ -1,0 +1,5 @@
+# Bruno local secret/runtime caches (never commit credentials)
+.env
+environments/.env
+*.secret
+.bruno
