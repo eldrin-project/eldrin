@@ -1,0 +1,27 @@
+headers {
+  x-api-key: {{apiKey}}
+  Accept: application/json
+}
+
+docs {
+  # Factorial API (sandbox)
+
+  Collection-level config. All requests inherit the `x-api-key` header from
+  here, resolved from the `apiKey` variable defined in the selected
+  environment (see `environments/`).
+
+  ## Setup
+
+  1. Open this folder as a collection in Bruno.
+  2. Select the **Sandbox** environment (top-right).
+  3. The `apiKey` value lives in `environments/Sandbox.bru`, which is
+     gitignored. Copy `environments/Sandbox.bru.example` to
+     `environments/Sandbox.bru` and paste your key.
+
+  ## Conventions (validated against the live sandbox)
+
+  - Auth header: `x-api-key: <raw key>` (no prefix).
+  - Dated API path: `/api/2026-04-01/resources/<group>/<resource>`.
+  - Base URLs: sandbox `https://api.eu2.demo.factorial.dev`,
+    production `https://api.factorialhr.com`.
+}
