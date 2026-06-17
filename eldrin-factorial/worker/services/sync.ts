@@ -53,16 +53,19 @@ export async function syncProjects(db: Database, client: FactorialClient): Promi
   const rows = await client.getAll<RawProject>('/project_management/projects');
   const ts = now();
   for (const r of rows) {
-    await db.insert(projects).values({
-      id: generateId(),
-      factorialId: String(r.id),
+    const fields = {
       name: r.name ?? null,
       status: r.status ?? null,
       rawJson: JSON.stringify(r),
       syncedAt: ts,
+    };
+    await db.insert(projects).values({
+      id: generateId(),
+      factorialId: String(r.id),
+      ...fields,
     }).onConflictDoUpdate({
       target: projects.factorialId,
-      set: { name: r.name ?? null, status: r.status ?? null, rawJson: JSON.stringify(r), syncedAt: ts },
+      set: fields,
     });
   }
   return rows.length;

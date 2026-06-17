@@ -3,12 +3,7 @@ import { useAuthHeaders } from '@eldrin-project/eldrin-app-react';
 import { toast } from 'sonner';
 import type { Team } from '../../types/factorial';
 import * as api from '../../api';
-
-const NOT_CONFIGURED_HINT = 'Factorial is not configured. Set FACTORIAL_API_BASE_URL and FACTORIAL_API_KEY in app settings.';
-
-function isNotConfiguredError(message: string): boolean {
-  return message.toLowerCase().includes('not configured') || message.includes('400');
-}
+import { isNotConfiguredError, NOT_CONFIGURED_HINT } from '../../lib/errors';
 
 function renderTeamName(team: Team): string {
   if (typeof team.name === 'string' && team.name) return team.name;
