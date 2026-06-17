@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthHeaders } from '@eldrin-project/eldrin-app-react';
 import { toast } from 'sonner';
 import * as api from '../../api';
@@ -6,20 +6,22 @@ import type { ConnectionStatus } from '../../types/factorial';
 
 export function ConnectionSettings({ apiBase }: { apiBase: string }) {
   const headers = useAuthHeaders();
+  const headersRef = useRef(headers);
+  headersRef.current = headers;
   const [status, setStatus] = useState<ConnectionStatus | null>(null);
   const [syncing, setSyncing] = useState(false);
 
   const load = useCallback(async () => {
-    try { setStatus(await api.getConnection(apiBase, headers)); }
+    try { setStatus(await api.getConnection(apiBase, headersRef.current)); }
     catch (e) { toast.error(e instanceof Error ? e.message : 'Failed to load status'); }
-  }, [apiBase, headers]);
+  }, [apiBase]);
 
   useEffect(() => { void load(); }, [load]);
 
   const sync = async () => {
     setSyncing(true);
     try {
-      const r = await api.runSync(apiBase, headers);
+      const r = await api.runSync(apiBase, headersRef.current);
       toast.success(`Synced ${r.employees} employees, ${r.projects} projects`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Sync failed');
