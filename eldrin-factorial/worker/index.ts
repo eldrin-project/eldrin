@@ -6,6 +6,8 @@ import { createDb, type Database } from './db';
 import { connectionRoutes } from './routes/connection';
 import { syncRoutes } from './routes/sync';
 import { employeesRoutes } from './routes/employees';
+import { teamsRoutes } from './routes/teams';
+import { timeoffRoutes } from './routes/timeoff';
 
 type Variables = { db: Database; userId: string };
 
@@ -55,6 +57,8 @@ app.use('/api/*', async (c, next) => {
 app.route('', connectionRoutes);
 app.route('', syncRoutes);
 app.route('', employeesRoutes);
+app.route('', teamsRoutes);
+app.route('', timeoffRoutes);
 
 app.get('*', async (c) => c.env.ASSETS.fetch(c.req.raw));
 
