@@ -13,8 +13,11 @@
 - App id / package name: `eldrin-factorial`. Worker name: `eldrin-factorial`. D1 db name: `eldrin-factorial-db`.
 - Dev server port: `4011` (eldrin-email uses 4010; pick the next free port).
 - Single-spa entry filename: `/eldrin-factorial.js` (+ `/eldrin-factorial.css`).
-- Factorial API path convention: `{API_BASE_URL}/api/v1/...`. Sandbox base `https://api.eu2.demo.factorial.dev`; prod `https://api.factorialhr.com`.
-- Factorial auth header (company API key): send as `x-api-key: <API_KEY>` (verify against docs in Task 5; the client centralizes this so only one line changes if wrong).
+- Factorial API path convention (VALIDATED live against sandbox): `{API_BASE_URL}/api/2026-04-01/resources/<group>/<resource>`. Sandbox base `https://api.eu2.demo.factorial.dev`; prod `https://api.factorialhr.com`. (NOT the old `/api/v1/...` from the Postman collection.)
+- Factorial auth header (company API key), VALIDATED: `x-api-key: <API_KEY>`, raw key, no prefix. (`Authorization: Bearer` returns 401.)
+- Factorial pagination (VALIDATED): cursor-based. Response body `{ data: [...], meta: { has_next_page, end_cursor, total, limit } }`. Next page fetched with query param `after_id=<end_cursor>`.
+- Validated resource endpoints: employees `/api/2026-04-01/resources/employees/employees?only_active=true`; projects `/api/2026-04-01/resources/project_management/projects`; teams `/api/2026-04-01/resources/teams/teams`; time off `/api/2026-04-01/resources/timeoff/leaves`.
+- Validated employee payload fields: `id`, `first_name`, `last_name`, `full_name`, `email`, `manager_id` (NO top-level `job_title`/`team_id` — those columns stay nullable).
 - Worker env vars: `FACTORIAL_API_BASE_URL` (config), `FACTORIAL_API_KEY` (secret), plus platform `DB`, `ASSETS`, `JWT_SECRET`, optional `ELDRIN_CORE_URL`.
 - Shell auth: resolve `userId` from `X-Eldrin-User-Id` header (prod) or Bearer JWT (dev). `/health` is public; all `/api/*` require an authenticated user.
 - Immutable patterns, files < 800 lines (target 200–400), errors handled explicitly and never swallowed, inputs validated at boundaries (project global rules).
@@ -538,7 +541,8 @@ git commit -m "feat(factorial): add connection status route"
   - `class FactorialError extends Error { status: number }`
   - `interface FactorialClient { get<T>(path: string): Promise<T>; getAll<T>(path: string): Promise<T[]> }`
   - `function createFactorialClient(env: Pick<Env, 'FACTORIAL_API_BASE_URL' | 'FACTORIAL_API_KEY'>): FactorialClient`
-  - `getAll` traverses Factorial pagination (follows `meta`/`next` page params; see Step 1 for the assumed shape) and returns the flattened `data` array.
+  - Base path: `{base}/api/2026-04-01/resources` + the caller-supplied path (e.g. `/employees/employees?only_active=true`).
+  - `getAll` traverses Factorial cursor pagination (VALIDATED): reads `meta.has_next_page` / `meta.end_cursor`, fetches the next page with `after_id=<end_cursor>`, and returns the flattened `data` array.
 
 - [ ] **Step 1: Write the failing test** `worker/__tests__/factorial-client.test.ts`. The client uses `globalThis.fetch`; stub it.
 ```ts
@@ -554,31 +558,43 @@ function jsonResponse(body: unknown, status = 200) {
 }
 
 describe('factorial-client', () => {
-  it('GETs with api key header and /api/v1 base', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ data: [{ id: 1 }] }));
+  it('GETs with x-api-key header and the dated /api/2026-04-01/resources base', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ data: [{ id: 1 }], meta: {} }));
     const client = createFactorialClient(env);
-    const out = await client.get<{ data: { id: number }[] }>('/employees');
+    const out = await client.get<{ data: { id: number }[] }>('/employees/employees');
     expect(out.data[0].id).toBe(1);
     const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe('https://api.eu2.demo.factorial.dev/api/v1/employees');
+    expect(url).toBe('https://api.eu2.demo.factorial.dev/api/2026-04-01/resources/employees/employees');
     expect((init?.headers as Record<string, string>)['x-api-key']).toBe('k');
   });
 
   it('throws FactorialError on non-2xx with status', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ message: 'nope' }, 403));
     const client = createFactorialClient(env);
-    await expect(client.get('/employees')).rejects.toMatchObject({ name: 'FactorialError', status: 403 });
+    await expect(client.get('/employees/employees')).rejects.toMatchObject({ name: 'FactorialError', status: 403 });
   });
 
-  it('getAll follows pagination until no next page', async () => {
+  it('getAll follows cursor pagination via after_id until has_next_page is false', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch')
-      .mockResolvedValueOnce(jsonResponse({ data: [{ id: 1 }], meta: { has_next_page: true } }))
-      .mockResolvedValueOnce(jsonResponse({ data: [{ id: 2 }], meta: { has_next_page: false } }));
+      .mockResolvedValueOnce(jsonResponse({ data: [{ id: 1 }], meta: { has_next_page: true, end_cursor: 'CUR1' } }))
+      .mockResolvedValueOnce(jsonResponse({ data: [{ id: 2 }], meta: { has_next_page: false, end_cursor: 'CUR2' } }));
     const client = createFactorialClient(env);
-    const all = await client.getAll<{ id: number }>('/employees');
+    const all = await client.getAll<{ id: number }>('/employees/employees');
     expect(all.map((x) => x.id)).toEqual([1, 2]);
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock.mock.calls[1][0]).toContain('page=2');
+    // first call has no after_id; second call carries after_id=CUR1
+    expect(fetchMock.mock.calls[0][0]).not.toContain('after_id');
+    expect(fetchMock.mock.calls[1][0]).toContain('after_id=CUR1');
+  });
+
+  it('getAll preserves an existing query string when appending after_id', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(jsonResponse({ data: [{ id: 1 }], meta: { has_next_page: true, end_cursor: 'C' } }))
+      .mockResolvedValueOnce(jsonResponse({ data: [{ id: 2 }], meta: { has_next_page: false } }));
+    const client = createFactorialClient(env);
+    await client.getAll<{ id: number }>('/employees/employees?only_active=true');
+    expect(fetchMock.mock.calls[1][0]).toContain('only_active=true');
+    expect(fetchMock.mock.calls[1][0]).toContain('after_id=C');
   });
 });
 ```
@@ -590,7 +606,8 @@ Expected: FAIL (module not found).
 
 - [ ] **Step 3: Write `worker/services/factorial-client.ts`**:
 ```ts
-const API_VERSION = 'v1';
+// Validated live against the sandbox: dated API version + resources structure.
+const API_BASE_PATH = '/api/2026-04-01/resources';
 
 export class FactorialError extends Error {
   status: number;
@@ -608,7 +625,7 @@ export interface FactorialClient {
 
 interface Paged<T> {
   data: T[];
-  meta?: { has_next_page?: boolean };
+  meta?: { has_next_page?: boolean; end_cursor?: string };
 }
 
 export function createFactorialClient(
@@ -619,7 +636,7 @@ export function createFactorialClient(
   if (!base || !key) throw new FactorialError('Factorial credentials not configured', 400);
 
   async function get<T>(path: string): Promise<T> {
-    const url = `${base}/api/${API_VERSION}${path}`;
+    const url = `${base}${API_BASE_PATH}${path}`;
     const res = await fetch(url, {
       headers: { 'x-api-key': key, Accept: 'application/json' },
     });
@@ -630,15 +647,18 @@ export function createFactorialClient(
     return res.json() as Promise<T>;
   }
 
+  // Cursor pagination (validated): follow meta.end_cursor via after_id until
+  // meta.has_next_page is false.
   async function getAll<T>(path: string): Promise<T[]> {
     const out: T[] = [];
-    let page = 1;
+    let afterId: string | undefined;
     for (;;) {
       const sep = path.includes('?') ? '&' : '?';
-      const pageData = await get<Paged<T>>(`${path}${sep}page=${page}`);
-      out.push(...(pageData.data ?? []));
-      if (!pageData.meta?.has_next_page) break;
-      page += 1;
+      const pagePath = afterId ? `${path}${sep}after_id=${encodeURIComponent(afterId)}` : path;
+      const page = await get<Paged<T>>(pagePath);
+      out.push(...(page.data ?? []));
+      if (!page.meta?.has_next_page || !page.meta.end_cursor) break;
+      afterId = page.meta.end_cursor;
     }
     return out;
   }
@@ -646,7 +666,6 @@ export function createFactorialClient(
   return { get, getAll };
 }
 ```
-> Implementer note: the exact auth header (`x-api-key` vs `Authorization: Bearer`) and pagination shape (`meta.has_next_page` vs link headers) must be confirmed against the Factorial docs during the Bruno phase. They are isolated here so a correction is a one-line change. Keep the test asserting whatever the confirmed contract is.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -700,18 +719,27 @@ function fakeDb() {
 }
 
 describe('syncEmployees', () => {
-  it('upserts each employee mapped from Factorial payload', async () => {
+  it('upserts each employee mapped from the validated Factorial payload shape', async () => {
     const db = fakeDb();
+    // Validated employee fields: id, first_name, last_name, full_name, email.
+    // No top-level job_title/team_id, so those map to null.
     const client = fakeClient([
-      { id: 10, full_name: 'Ada Lovelace', email: 'ada@x.io', job_title: 'Engineer', team_id: 3 },
+      { id: 10, first_name: 'Ada', last_name: 'Lovelace', full_name: 'Ada Lovelace', email: 'ada@x.io', manager_id: 2 },
     ]);
     const count = await syncEmployees(db, client);
     expect(count).toBe(1);
     expect(db._upserts[0]).toMatchObject({
-      factorialId: '10', fullName: 'Ada Lovelace', email: 'ada@x.io', jobTitle: 'Engineer', teamId: '3',
+      factorialId: '10', fullName: 'Ada Lovelace', email: 'ada@x.io', jobTitle: null, teamId: null,
     });
     expect(typeof db._upserts[0].syncedAt).toBe('number');
     expect(typeof db._upserts[0].rawJson).toBe('string');
+  });
+
+  it('derives full_name from first/last when full_name is absent', async () => {
+    const db = fakeDb();
+    const client = fakeClient([{ id: 11, first_name: 'Grace', last_name: 'Hopper', email: 'grace@x.io' }]);
+    await syncEmployees(db, client);
+    expect(db._upserts[0]).toMatchObject({ factorialId: '11', fullName: 'Grace Hopper' });
   });
 });
 ```
@@ -730,34 +758,53 @@ import type { FactorialClient } from './factorial-client';
 import { FactorialError } from './factorial-client';
 import { generateId, now } from '../utils';
 
-interface RawEmployee { id: number | string; full_name?: string; email?: string; job_title?: string; team_id?: number | string }
+// Validated employee fields: id, first_name, last_name, full_name, email, manager_id.
+// job_title / team_id are NOT top-level fields in the 2026-04-01 employees resource.
+interface RawEmployee {
+  id: number | string;
+  first_name?: string;
+  last_name?: string;
+  full_name?: string;
+  email?: string;
+  job_title?: string;      // not present today; mapped if it ever appears
+  team_id?: number | string;
+}
 interface RawProject { id: number | string; name?: string; status?: string }
 
 const asStr = (v: unknown): string | null => (v === undefined || v === null ? null : String(v));
 
+function employeeFullName(r: RawEmployee): string | null {
+  if (r.full_name) return r.full_name;
+  const joined = [r.first_name, r.last_name].filter(Boolean).join(' ').trim();
+  return joined.length > 0 ? joined : null;
+}
+
 export async function syncEmployees(db: Database, client: FactorialClient): Promise<number> {
-  const rows = await client.getAll<RawEmployee>('/employees');
+  const rows = await client.getAll<RawEmployee>('/employees/employees?only_active=true');
   const ts = now();
   for (const r of rows) {
-    await db.insert(employees).values({
-      id: generateId(),
-      factorialId: String(r.id),
-      fullName: r.full_name ?? null,
+    const fields = {
+      fullName: employeeFullName(r),
       email: r.email ?? null,
       jobTitle: r.job_title ?? null,
       teamId: asStr(r.team_id),
       rawJson: JSON.stringify(r),
       syncedAt: ts,
+    };
+    await db.insert(employees).values({
+      id: generateId(),
+      factorialId: String(r.id),
+      ...fields,
     }).onConflictDoUpdate({
       target: employees.factorialId,
-      set: { fullName: r.full_name ?? null, email: r.email ?? null, jobTitle: r.job_title ?? null, teamId: asStr(r.team_id), rawJson: JSON.stringify(r), syncedAt: ts },
+      set: fields,
     });
   }
   return rows.length;
 }
 
 export async function syncProjects(db: Database, client: FactorialClient): Promise<number> {
-  const rows = await client.getAll<RawProject>('/projects');
+  const rows = await client.getAll<RawProject>('/project_management/projects');
   const ts = now();
   for (const r of rows) {
     await db.insert(projects).values({
@@ -935,8 +982,8 @@ git commit -m "feat(factorial): add employees read route"
 
 **Interfaces:**
 - Produces:
-  - `teamsRoutes`: `GET /api/teams` → `{ teams: unknown[] }` proxied via `client.getAll('/teams')`.
-  - `timeoffRoutes`: `GET /api/timeoff` → `{ timeoff: unknown[] }` proxied via `client.getAll('/time_off')`.
+  - `teamsRoutes`: `GET /api/teams` → `{ teams: unknown[] }` proxied via `client.getAll('/teams/teams')`.
+  - `timeoffRoutes`: `GET /api/timeoff` → `{ timeoff: unknown[] }` proxied via `client.getAll('/timeoff/leaves')`.
   - Both: 401 without user; 400 `{ error }` if not configured; map `FactorialError.status` on failure.
 
 - [ ] **Step 1: Write the failing test** `worker/__tests__/proxy.test.ts`:
@@ -980,7 +1027,7 @@ teamsRoutes.get('/api/teams', async (c) => {
     return c.json({ error: 'Factorial is not configured' }, 400);
   }
   try {
-    const teams = await createFactorialClient(c.env).getAll('/teams');
+    const teams = await createFactorialClient(c.env).getAll('/teams/teams');
     return c.json({ teams });
   } catch (e) {
     const status = e instanceof FactorialError ? e.status : 500;
@@ -989,7 +1036,7 @@ teamsRoutes.get('/api/teams', async (c) => {
 });
 ```
 
-- [ ] **Step 4: Write `worker/routes/timeoff.ts`** — identical shape to teams, route `GET /api/timeoff`, calls `getAll('/time_off')`, returns `{ timeoff }`, error message "Failed to fetch time off".
+- [ ] **Step 4: Write `worker/routes/timeoff.ts`** — identical shape to teams, route `GET /api/timeoff`, calls `getAll('/timeoff/leaves')`, returns `{ timeoff }`, error message "Failed to fetch time off".
 
 - [ ] **Step 5: Mount both in `worker/index.ts`** — import and `app.route('', teamsRoutes)`, `app.route('', timeoffRoutes)`.
 
@@ -1217,7 +1264,7 @@ git commit -m "feat(factorial): add root component with nav and routing"
 }
 ```
 
-- [ ] **Step 2: Create `.dev.vars`** (gitignored) from `.dev.vars.example` with the real sandbox key + the shared `JWT_SECRET` from `~/.eldrin/.env` (ask the user for the API key value; do not invent one).
+- [ ] **Step 2: Create `.dev.vars`** (gitignored) from `.dev.vars.example`. Set `FACTORIAL_API_BASE_URL=https://api.eu2.demo.factorial.dev` and `FACTORIAL_API_KEY=<the validated sandbox key>` — the key is already on disk (gitignored) in `eldrin-factorial/bruno/environments/Sandbox.bru` under `apiKey:`; copy it from there. Set `JWT_SECRET` to the shared secret from `~/.eldrin/.env`. Never commit `.dev.vars`.
 
 - [ ] **Step 3: Start the dev server**
 

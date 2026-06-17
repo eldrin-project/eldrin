@@ -100,7 +100,22 @@ its environment and sends the key on every Factorial call.
 - Sandbox API root: `https://api.eu2.demo.factorial.dev/`
 - Production API root: `https://api.factorialhr.com/`
 - OAuth app registration page (not used at runtime): `https://app.eu2.demo.factorial.dev/...`
-- Factorial API path convention: `/api/v1/...` (per the Postman collection).
+- **Factorial API path convention (validated live against the sandbox):**
+  `/api/2026-04-01/resources/<group>/<resource>` (dated version, NOT the old
+  `/api/v1/...` from the Postman collection).
+- **Auth header (validated):** `x-api-key: <raw key>`, no prefix. `Bearer` returns 401.
+- **Pagination (validated):** cursor-based. Response has `meta.has_next_page` and
+  `meta.end_cursor`; the next page is fetched with the query param
+  `after_id=<end_cursor>`.
+- **Validated resource endpoints:**
+  - Employees: `/api/2026-04-01/resources/employees/employees?only_active=true`
+  - Projects:  `/api/2026-04-01/resources/project_management/projects`
+  - Teams:     `/api/2026-04-01/resources/teams/teams`
+  - Time off:  `/api/2026-04-01/resources/timeoff/leaves`
+- **Employee payload fields (validated):** `id`, `first_name`, `last_name`,
+  `full_name`, `email`, `manager_id`, `team_id` and `job_title` are NOT top-level
+  fields, so the stored `job_title`/`team_id` columns are nullable and populated only
+  when present (kept for forward-compat; `raw_json` retains the full payload).
 
 ## Data model (D1, `migrations/001-init.sql`)
 
@@ -143,9 +158,10 @@ route is needed.
 
 ## Factorial client & versioning
 
-`factorial-client.ts` centralizes: base URL, API-key auth header, the `/api/v1` version
-segment, pagination handling, and non-2xx → typed error mapping. One place to adjust when
-validating the Postman/Bruno collection against the live docs.
+`factorial-client.ts` centralizes: base URL, the `x-api-key` auth header, the dated
+`/api/2026-04-01/resources` path prefix, cursor pagination (`meta.has_next_page` /
+`meta.end_cursor` followed via `after_id`), and non-2xx → typed error mapping. All
+endpoint paths and pagination are validated live against the sandbox (see Environments).
 
 ## Error handling
 
