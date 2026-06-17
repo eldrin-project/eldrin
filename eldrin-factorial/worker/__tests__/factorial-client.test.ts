@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { createFactorialClient, FactorialError } from '../services/factorial-client';
+import { createFactorialClient } from '../services/factorial-client';
 
 const env = { FACTORIAL_API_BASE_URL: 'https://api.eu2.demo.factorial.dev', FACTORIAL_API_KEY: 'k' };
 
