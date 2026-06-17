@@ -1,8 +1,0 @@
-# Bruno local secret/runtime caches (never commit credentials)
-.env
-*.secret
-.bruno
-
-# Real environment files hold the API key — keep only the .example template
-environments/*.bru
-!environments/*.bru.example

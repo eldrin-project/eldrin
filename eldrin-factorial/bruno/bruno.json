@@ -1,9 +1,0 @@
-{
-  "version": "1",
-  "name": "Factorial",
-  "type": "collection",
-  "ignore": [
-    "node_modules",
-    ".git"
-  ]
-}

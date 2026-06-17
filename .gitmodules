@@ -49,3 +49,6 @@
 [submodule "vue-todo"]
 	path = vue-todo
 	url = git@github.com:eldrin-project/vue-todo.git
+[submodule "eldrin-factorial"]
+	path = eldrin-factorial
+	url = git@github.com:eldrin-project/eldrin-factorial.git
