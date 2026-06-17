@@ -5,6 +5,7 @@ import migrations from './migrations.generated';
 import { createDb, type Database } from './db';
 import { connectionRoutes } from './routes/connection';
 import { syncRoutes } from './routes/sync';
+import { employeesRoutes } from './routes/employees';
 
 type Variables = { db: Database; userId: string };
 
@@ -53,6 +54,7 @@ app.use('/api/*', async (c, next) => {
 
 app.route('', connectionRoutes);
 app.route('', syncRoutes);
+app.route('', employeesRoutes);
 
 app.get('*', async (c) => c.env.ASSETS.fetch(c.req.raw));
 
