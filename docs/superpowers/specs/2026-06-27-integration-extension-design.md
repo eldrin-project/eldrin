@@ -18,6 +18,22 @@ The guiding philosophy is **"configure first, override when needed"** — compar
 
 ---
 
+## 1a. Implementation Philosophy: Factorial-Driven, YAGNI
+
+The full abstraction is **designed and scaffolded** up front — interfaces, the descriptor model, registration points, manifest schema, and the "shape" of every capability (all auth strategies, all transports, all storage modes, webhooks). But a capability is only **implemented** when an integration actually exercises it. For this first pass, that integration is **factorial**.
+
+Concretely:
+- The `AuthStrategy` interface and the names/types for all four strategies exist, but only `apiKey` has a working implementation. `bearer`, `oauth2-client-credentials`, and `oauth2-auth-code` are present as typed stubs that throw a clear `NotImplemented` error if selected.
+- The `Transport` interface exists with HTTP/REST (GET + cursor pagination) implemented; `graphql` and `file` (R2/S3) are stubbed.
+- Storage modes: `stored` is implemented (the only mode factorial uses); `live` and `cached` are declared/typed and the mode engine + repository have the branch points, but the live/cached paths throw `NotImplemented` until an integration needs them.
+- Webhooks: the descriptor `webhook` block, the inbound route shape, and the `webhook_deliveries` table are defined; the pipeline is implemented only as far as factorial needs (factorial has no webhooks today, so this may remain a scaffolded stub for the first pass).
+
+**Rule:** stub with a clear, typed boundary (`NotImplemented` error, documented), never a silent no-op. Each future integration fills in exactly the slice it needs. This keeps the abstraction honest (the shape is proven against a real integration) without building speculative code that has no consumer.
+
+The **"Implemented vs. Scaffolded for the factorial-driven first pass"** matrix in §14a is the authoritative scope list for what gets working code now.
+
+---
+
 ## 2. Goals & Non-Goals
 
 ### Goals
@@ -25,14 +41,14 @@ The guiding philosophy is **"configure first, override when needed"** — compar
 - A new `@eldrin-project/eldrin-integration` package providing the integration building blocks.
 - A new manifest `kind: "integration"` recognized by the shell.
 - Declarative resource descriptors that derive: HTTP/transport client, D1 schema/migrations (for stored resources), generic sync runner, repository, webhook routes, health check, and the admin-panel schema.
-- Per-resource **storage modes** (`stored` / `live` / `cached`) with declared capability + admin override.
-- Three refresh paths for stored data: **scheduled** (cron), **manual**, and **webhooks** (fully implemented).
+- Per-resource **storage modes** (`stored` / `live` / `cached`) with declared capability + admin override. *(Designed in full; `stored` implemented now, `live`/`cached` scaffolded — see §1a, §14a.)*
+- Three refresh paths for stored data: **scheduled** (cron), **manual**, and **webhooks**. *(Webhook pipeline designed in full; implemented as far as factorial needs — see §1a, §14a.)*
 - A **repository interface** that abstracts stored-vs-live-vs-cached for cross-app consumption.
-- Outbound auth strategies: API key / static header, Bearer / static token, OAuth2 client-credentials, OAuth2 authorization-code.
-- Transports: HTTP/REST (fully shipped), GraphQL, and File (R2/S3), behind an extensible `Transport` interface.
+- Outbound auth strategies: API key / static header, Bearer / static token, OAuth2 client-credentials, OAuth2 authorization-code. *(All typed; only `apiKey` implemented now — see §1a, §14a.)*
+- Transports: HTTP/REST, GraphQL, and File (R2/S3), behind an extensible `Transport` interface. *(All typed; only HTTP/REST GET+cursor implemented now — see §1a, §14a.)*
 - Health / connection-test capability derived from the connection block.
 - Admin UI: shell-generated management panel by default, with an opt-in custom React management page.
-- Rewrite `eldrin-factorial` onto the SDK as the reference integration.
+- Rewrite `eldrin-factorial` onto the SDK as the reference integration — the driver of what gets implemented in this first pass.
 
 ### Non-Goals (explicitly out of scope)
 
@@ -169,7 +185,9 @@ All three refresh paths converge on the same generic sync runner: **transport fe
 
 - `POST /api/sync` (factorial already has this) and a "Sync now" button in the admin panel, per-resource or all.
 
-### 6.3 Webhooks (fully implemented)
+### 6.3 Webhooks (designed in full; scaffolded this pass)
+
+> **Scope note (§1a, §14a):** factorial has no webhooks, so the pipeline below is *designed in full and scaffolded* (route shape + `webhook_deliveries` table + typed handler interface) but the verify/dedup/apply steps throw `NotImplemented` until the first webhook-using integration. The design is recorded here so that integration is a fill-in, not a redesign.
 
 Inbound `POST /api/webhooks/:resource`. The SDK pipeline:
 
@@ -311,17 +329,16 @@ Each building block in isolation with mocked `fetch`/transport:
 
 ### Integration
 End-to-end against a mocked external API into a real SQLite (app-core's `sqlite-node` test DB):
-- Full sync → `sync_state` → repository read.
-- Mode switch stored↔live yields identical repository results.
-- Webhook delivery → upsert → event emitted.
+- Full sync → `sync_state` → repository read (`stored` mode — implemented this pass).
 - Cron trigger drives a sync.
+- *Scaffolded capabilities are covered by tests asserting they throw `NotImplemented`* (selecting `live`/`cached`, `query()`, a webhook delivery, an unimplemented auth/transport). When a capability is later implemented, these tests are replaced by behavioral tests (e.g. mode switch stored↔live yields identical repository results; webhook delivery → upsert → event emitted).
 
 ### Boundary / validation
 - Descriptors validated with a schema at `defineIntegration()` (fail fast: unsupported default mode, missing auth settings, live-only resource used in a join → explicit warning).
 - Never trust external API responses; validate before upsert.
 
 ### E2E
-Admin panel flow in eldrin-core (Playwright): test connection, switch a resource mode, trigger "Sync now", see status update.
+Admin panel flow in eldrin-core (Playwright): test connection, trigger "Sync now", see status update. (Mode-switch E2E is added when a second mode is implemented; this pass has only `stored`, so the selector shows the other modes greyed.)
 
 ---
 
@@ -342,18 +359,39 @@ Factorial's existing tests are kept green throughout and become the acceptance t
 
 ---
 
-## 15. Implementation Order (suggested)
+## 14a. Implemented vs. Scaffolded (Factorial-Driven First Pass)
+
+Per the philosophy in §1a, the table below is the authoritative scope of what gets **working code now** versus what is **scaffolded** (interface + typed stub that throws a documented `NotImplemented` error). Factorial exercises only the "Implemented" column.
+
+| Capability | First pass (factorial-driven) | Scaffolded for later |
+|------------|-------------------------------|----------------------|
+| **Auth** | `apiKey` (header injection, `x-api-key`) | `bearer`, `oauth2-client-credentials`, `oauth2-auth-code` — typed stubs |
+| **Transport** | `http` REST: GET + cursor pagination + retry | `http` write verbs (POST/PUT), `graphql`, `file` (R2/S3) — interface only |
+| **Storage modes** | `stored` (D1 sync) | `live`, `cached` — declared/typed; mode-engine + repository branch points present, paths throw `NotImplemented` |
+| **Refresh** | Manual (`POST /api/sync`) + scheduled (cron) | — |
+| **Webhooks** | Descriptor block, route shape, `webhook_deliveries` table defined | Full pipeline (signature verify, dedup, apply) — factorial has no webhooks, so stubbed this pass |
+| **Repository** | `findAll` / `findById` over `stored` | `query()` + live/cached resolution + join warning |
+| **Admin UI** | Generated panel (connection, resources, sync-now, status) + factorial's opt-in custom pages | Mode selector wired only for `stored`; live/cached greyed |
+| **Health** | `/api/health` connection test | — |
+| **Manifest** | `kind: "integration"`, headless handling, `integration` block, `integration_config` | — |
+
+Whichever scaffolded slice a future integration needs is implemented at that time, replacing the stub. The stub boundary is always a typed, documented `NotImplemented` error — never a silent no-op.
+
+---
+
+## 15. Implementation Order (factorial-driven)
+
+Scaffold interfaces broadly; implement only the factorial slice (§14a). Stubs are typed and throw `NotImplemented`.
 
 1. Scaffold `@eldrin-project/eldrin-integration` (tsup, exports, dep on app-core).
-2. `Transport` interface + HTTP transport (REST, pagination, retry).
-3. Auth strategies (apiKey, bearer, then OAuth2 variants).
-4. Descriptor model + `defineIntegration()` + schema validation.
+2. `Transport` interface + **HTTP transport: GET + cursor pagination + retry** (other verbs/transports stubbed).
+3. `AuthStrategy` interface + **`apiKey` implemented**; `bearer`/OAuth2 stubbed.
+4. Descriptor model + `defineIntegration()` + schema validation (validates the full descriptor shape; rejects selecting an unimplemented capability with a clear error).
 5. Sync runner + `sync_state` + derived schema/migrations.
-6. Storage-mode engine (stored → live → cached) + repository.
-7. Webhook pipeline + `webhook_deliveries`.
+6. Storage-mode engine + repository — **`stored` path + `findAll`/`findById`**; `live`/`cached`/`query()` branch points stubbed.
+7. Health/connection-test (`/api/health`).
 8. Scheduling (cron) + `integration_config` runtime overrides.
-9. Health/connection-test.
-10. Manifest `kind: "integration"` + generated admin schema; shell admin panel + headless handling.
-11. GraphQL + file (R2/S3) transports.
-12. Rewrite `eldrin-factorial` on the SDK; keep its tests green.
-13. E2E admin flow in eldrin-core.
+9. Manifest `kind: "integration"` + generated admin schema; shell admin panel + headless handling (mode selector limited to implemented modes).
+10. Rewrite `eldrin-factorial` on the SDK; keep its tests green.
+11. E2E admin flow in eldrin-core (test connection, sync now, see status).
+12. **Scaffold-only (stubs + tests asserting `NotImplemented`):** webhook pipeline, `live`/`cached` modes, `query()`, GraphQL + file transports, bearer/OAuth2 auth. Each is implemented later when an integration requires it.
