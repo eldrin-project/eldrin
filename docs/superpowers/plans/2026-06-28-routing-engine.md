@@ -566,7 +566,7 @@ git commit -m "feat(flow): add exec/stages applyNode (map/transform/filter per-r
 
 **Interfaces:**
 - Consumes: `Row, FlowEdge, ExecuteDeps` from `../types`.
-- Produces: `selectBranch(outgoing: FlowEdge[], row: Row, deps: ExecuteDeps): RouteResult` where `type RouteResult = { kind: 'matched'; to: string } | { kind: 'error'; error: unknown } | { kind: 'none' }`. First-match over `outgoing` (declared order); `when` throw → `{kind:'error'}` (stop evaluating further edges); no match → `{kind:'none'}`. Consumed by `walk.ts` (Task 4d). Export `RouteResult`.
+- Produces: `selectBranch(outgoing: FlowEdge[], row: Row, deps: ExecuteDeps): RouteResult`. First-match over `outgoing` (declared order). **A `when` that throws is SKIPPED (its error accumulated in `edgeErrors`) and evaluation CONTINUES to later edges** — a throwing edge does not suppress a working later branch (ratified semantics; an earlier draft stopped at the first throw). `RouteResult = { kind: 'matched'; to: string; edgeErrors: {edgeTo; error}[] } | { kind: 'none'; edgeErrors: {edgeTo; error}[] }`. `walk.ts` drains `edgeErrors` via `collectError`, advances on match, and counts `routedNowhere` only when `kind:'none'` AND no edgeErrors. Consumed by `walk.ts` (Task 4d). Export `RouteResult`.
 
 - [ ] **Step 1: Write the failing tests**
 

@@ -52,7 +52,7 @@ Each route node's outgoing edge carries `when?: string` — a boolean expression
 - **Compile-once memoization** keyed on the expression string — conditions run per row across thousands of rows; caching the compiled fn matters (performance-first goal).
 
 **Semantics:**
-- `when` throws at runtime → non-structural row error (`collectError`, row dropped from that branch), consistent with transform/filter error handling (`execute.ts:113-117`); does NOT abort the flow.
+- `when` throws at runtime → the throwing edge is SKIPPED (treated as not-matched) and its error recorded via `collectError`; evaluation CONTINUES to the route's later edges, so the row can still route via a working branch. A row that hits only throwing edges ends with errors recorded (not counted as a clean `routedNowhere`). This resilient, CPI/Camel-aligned semantics was ratified after implementation (the original draft said "drop the row + stop at the first throw" — superseded). Does NOT abort the flow.
 - `when` syntactically invalid → caught at **validate-time** (`validateFlow` compiles each `when` once, 400 if it won't parse) — a broken condition can't be saved, mirroring builtin/hook reference validation.
 
 **Residual risk (documented, same as SP2):** no CPU/timeout guard, denylist not allowlist — acceptable because `when` is `integration:admin`-authored, the same trust boundary as snippets. Carry the SP2 documented-risk note forward.
