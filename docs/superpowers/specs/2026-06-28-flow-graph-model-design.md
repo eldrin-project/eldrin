@@ -263,8 +263,12 @@ export interface Row {
 
 3. Walk nodes in topological order. Each node kind is a `Row[] → Row[]` function:
    - **map** → set `current` to a new object built from `config.fields`
-     (`current[localCol] = raw[remoteKey]`, `undefined → null`). The idField entry is not
-     present in `fields` (it is the fixed `remote_id`).
+     (`current[localCol] = current[remoteKey]`, `undefined → null`), projecting from
+     the post-transform `current` payload (not `raw`), so hook-derived fields are
+     available for projection. The idField entry is not present in `fields` (it is the
+     fixed `remote_id`). In compiled flows the transform node precedes the map node
+     (see compiler section), preserving old `mapRows` semantics (transform sees the full
+     raw payload, then fieldMap projects from the transformed result).
    - **transform** →
      - `mode:'native'`: `current = deps.hooks[config.hook](current, raw)`. If the hook name
        is not in the registry, throw `IntegrationError('unknown hook: <name>', 400)`.
@@ -291,10 +295,10 @@ export interface Row {
 
 1. **Record-stream-per-node** (each node is a `Row[] → Row[]` step) rather than
    record-at-a-time-through-the-whole-graph. Slice 1's compiled graphs are linear
-   (source→map→[transform]→dest), so this makes each node a clean, independently unit-
-   testable function. When branching arrives (sub-project 5), a `route` node splits the
-   stream; the model already supports it. Trade-off: a record is not "done" until all nodes
-   process — fine for batch sync, which is the only trigger mode here.
+   (source→[transform]→map→[beforeUpsert]→dest), so this makes each node a clean,
+   independently unit-testable function. When branching arrives (sub-project 5), a `route`
+   node splits the stream; the model already supports it. Trade-off: a record is not "done"
+   until all nodes process — fine for batch sync, which is the only trigger mode here.
 
 2. **`evalSnippet` is an injected, slice-1-absent dependency.** The executor knows the
    transform/filter node *kinds* and how to thread records through them, but snippet
@@ -321,20 +325,22 @@ For each `ResourceDescriptor`, emit exactly one `Flow` with id
   `{ kind:'manual' }`.
 - **source node** (`id: 'source'`) ← `{ transport: resource.transport,
   idField: resource.idField, pagination: resource.transport.pagination }`.
+- **transform node** (`id: 'transform'`) ← emitted **only if** `resource.hooks?.transform`
+  exists → `{ mode:'native', hook:'transform' }`, placed **before** the map node so the
+  hook receives the full raw payload (preserves old `mapRows` semantics: transform(raw)
+  then project). (The hook key is the descriptor's hook name; the registry resolves
+  `'transform'` to the registered function — e.g. Factorial registers `deriveFullName`
+  under the `transform` key.)
 - **map node** (`id: 'map'`) ← `fields` built by **inverting** `resource.fieldMap`:
   for each `[remoteKey, localCol]`, if `remoteKey === resource.idField` skip it (maps to
-  the fixed `remote_id`), else set `fields[localCol] = remoteKey`.
-- **transform node** (`id: 'transform'`) ← emitted **only if** `resource.hooks?.transform`
-  exists → `{ mode:'native', hook:'transform' }`. (The hook key is the descriptor's hook
-  name; the registry resolves `'transform'` to the registered function — e.g. Factorial
-  registers `deriveFullName` under the `transform` key.)
+  the fixed `remote_id`), else set `fields[localCol] = remoteKey`. Placed after transform.
 - **beforeUpsert node** (`id: 'beforeUpsert'`) ← emitted **only if**
   `resource.hooks?.beforeUpsert` exists → `{ mode:'native', hook:'beforeUpsert' }`, placed
-  after the transform node.
+  after the map node.
 - **destination node** (`id: 'destination'`) ← `{ kind:'d1', table: resource.name,
   mode: resource.defaultMode }`.
 - **edges** ← a linear chain connecting the emitted nodes in order:
-  source → map → [transform] → [beforeUpsert] → destination. Edges connect only nodes that
+  source → [transform] → map → [beforeUpsert] → destination. Edges connect only nodes that
   were emitted (skipped hook nodes are bridged over).
 
 ### Where it plugs in
