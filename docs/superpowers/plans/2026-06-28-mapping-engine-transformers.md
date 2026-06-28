@@ -34,7 +34,7 @@
 - `src/flow/transformers/index.test.ts` (new) — built-in unit tests.
 - `src/flow/sandbox.ts` (new) — `compileSnippet`, `createSnippetEvaluator`, `SnippetInput`.
 - `src/flow/sandbox.test.ts` (new) — sandbox unit tests.
-- `src/flow/execute.ts` (modify) — rewrite map node to apply connections; adapt transform/filter snippet branches to `SnippetInput`.
+- `src/flow/execute.ts` (modify) — rewrite the `map` branch inside the streaming `stageFor` generator to apply connections; adapt transform/filter snippet branches to `SnippetInput`. (NOTE: sub-project 1.5 made the executor a streaming async-generator pipeline; edit the branches inside `stageFor`, not a batch `switch`.)
 - `src/flow/execute.test.ts` (modify) — extend with connection map-node tests.
 - `src/flow/compile.ts` (modify) — `invertFieldMap` emits connections.
 - `src/flow/compile.test.ts` (modify) — update fieldMap-inversion assertion to connections form.
@@ -401,7 +401,7 @@ git commit -m "feat(flow): add hardened snippet sandbox (new Function with shado
 
 ---
 
-### Task 4: Executor map-node rewrite + snippet-branch adaptation
+### Task 4: Executor map-branch rewrite + snippet-branch adaptation (streaming `stageFor`)
 
 **Files:**
 - Modify: `src/flow/execute.ts`
@@ -409,7 +409,9 @@ git commit -m "feat(flow): add hardened snippet sandbox (new Function with shado
 
 **Interfaces:**
 - Consumes: `MapConfig`/`Connection`/`SnippetInput` (Task 1); `BUILTINS` (Task 2); the `evalSnippet` dep shape (`(code, SnippetInput) => unknown`).
-- Produces: a map node that applies connections; transform/filter snippet branches that pass `SnippetInput`.
+- Produces: a map branch (inside the streaming `stageFor` generator) that applies connections; transform/filter snippet branches that pass `SnippetInput`.
+
+> **Rebase note (sub-project 1.5 already landed):** the executor is a streaming async-generator pipeline — `stageFor(node)` returns `async function*` stages with ONE shared per-row try/catch that re-throws `IntegrationError`/`NotImplementedError`. This task edits the `map`/`transform`/`filter` branches *inside* `stageFor`; it does NOT touch the destination consumer, the source stage, `topoSort`, or the pre-validation loops. See Step 3 for the exact current shape.
 
 - [ ] **Step 1: Write the failing tests (append to `src/flow/execute.test.ts`)**
 
@@ -496,22 +498,21 @@ describe('executeFlow map node connections', () => {
 Run: `npx vitest run src/flow/execute.test.ts`
 Expected: FAIL — map node still reads `cfg.fields`; connection configs produce wrong output / errors.
 
-- [ ] **Step 3: Rewrite the map node case in `src/flow/execute.ts`**
+- [ ] **Step 3: Rewrite the map branch in `src/flow/execute.ts`**
 
-Update the import line (add `Connection` is not needed; `MapConfig` already imported) and add the BUILTINS import at top:
+> **REBASED FOR THE STREAMING EXECUTOR (sub-project 1.5).** The executor is no longer a batch `switch` over `stream: Row[]`. It is a single `stageFor(node)` async-generator factory: `function stageFor(node) { return async function* (input) { for await (const row of input) { try { if (node.kind === 'map') {…} else if (node.kind === 'transform') {…} else if (node.kind === 'filter') {…} else {…} } catch (e) { if (e instanceof NotImplementedError || e instanceof IntegrationError) throw e; collectError(node.id, row.remoteId, e); } } }; }`. Each branch `yield`s its row (or doesn't, for filter). There is ONE shared per-row `try/catch` that ALREADY re-throws both `IntegrationError` and `NotImplementedError` — so the old "align the transform/filter catches" sub-step is **already done by the streaming rewrite; do NOT re-add it**. You retarget the map branch and the two snippet call-sites only.
+
+Add the BUILTINS import at the top of `src/flow/execute.ts`:
 
 ```ts
 import { BUILTINS } from './transformers';
 ```
 
-Replace the entire `case 'map': { ... break; }` block (lines 87-102) with:
+Replace the `map` branch inside `stageFor` (currently the `if (node.kind === 'map') { … yield { ...row, current }; }` block that loops over `Object.entries(cfg.fields)`) with the connection-application logic:
 
 ```ts
-      case 'map': {
-        const cfg = node.config as MapConfig;
-        const next: Row[] = [];
-        for (const row of stream) {
-          try {
+          if (node.kind === 'map') {
+            const cfg = node.config as MapConfig;
             const current: Record<string, unknown> = {};
             for (const conn of cfg.connections) {
               const resolved = conn.sources.map((sname) => row.current[sname]);
@@ -534,46 +535,32 @@ Replace the entire `case 'map': { ... break; }` block (lines 87-102) with:
               }
               current[conn.target] = value;
             }
-            next.push({ ...row, current });
-          } catch (e) {
-            if (e instanceof NotImplementedError || e instanceof IntegrationError) throw e; // structural
-            errors.push({ nodeId: node.id, remoteId: row.remoteId, message: e instanceof Error ? e.message : String(e) });
-          }
-        }
-        stream = next;
-        break;
-      }
-```
-
-Then adapt the transform NODE snippet branch (line 114) and filter NODE snippet branch (line 138) to the new `evalSnippet` envelope signature. For transform (line 114):
-
-```ts
-              next.push({ ...row, current: deps.evalSnippet!(cfg.snippet, { sources: [], row: row.current, raw: row.raw }) as Record<string, unknown> });
-```
-
-For filter (line 138):
-
-```ts
-              if (deps.evalSnippet!(cfg.snippet, { sources: [], row: row.current, raw: row.raw })) next.push(row);
-```
-
-(The sandbox freezes `row`/`raw` internally, so passing `row.current`/`row.raw` here is correct — do not freeze at the call site.)
-
-**Also align the transform and filter node per-row catches** so a snippet *compile* error (an `IntegrationError` thrown by the real `evalSnippet`) aborts the flow instead of being swallowed per-row. In BOTH the transform-node catch (currently `if (e instanceof NotImplementedError) throw e;`) and the filter-node catch, change the re-throw guard to also re-throw `IntegrationError`:
-
-```ts
-          } catch (e) {
-            if (e instanceof NotImplementedError || e instanceof IntegrationError) throw e; // structural, not per-record
-            errors.push({ nodeId: node.id, remoteId: row.remoteId, message: e instanceof Error ? e.message : String(e) });
+            yield { ...row, current };
           }
 ```
 
-This matches the map node's catch and the spec's compile-error-aborts / runtime-error-per-row split. (A runtime error from a native hook is a plain `Error`, so it is still collected per-row; only structural `IntegrationError`/`NotImplementedError` abort.)
+(The structural `throw`s — unknown builtin, snippet-without-evalSnippet — propagate out of the generator and abort the flow, caught by the shared `stageFor` catch which re-throws them. A per-row runtime error from a builtin/snippet is a plain `Error`, collected by that same catch via `collectError`, and the row is skipped — the generator simply doesn't `yield` it. This is the streaming equivalent of the spec's structural-vs-per-row split, and it works without any change to the catch.)
+
+Then retarget the **transform** and **filter** snippet call-sites (still inside `stageFor`) from the Pass-4 `(cfg.snippet, row)` signature to the new `SnippetInput` envelope. The transform snippet branch becomes:
+
+```ts
+              yield { ...row, current: deps.evalSnippet(cfg.snippet, { sources: [], row: row.current, raw: row.raw }) as Record<string, unknown> };
+```
+
+The filter snippet branch becomes:
+
+```ts
+              if (deps.evalSnippet(cfg.snippet, { sources: [], row: row.current, raw: row.raw })) yield row;
+```
+
+(Node-level transform/filter snippets have no connection sources, so `sources: []`. The sandbox freezes `row`/`raw` internally — pass `row.current`/`row.raw` directly, do not freeze at the call site. Keep the `if (!deps.evalSnippet) throw new NotImplementedError(...)` guards that already precede these branches.)
 
 - [ ] **Step 4: Run tests to verify they pass**
 
 Run: `npx vitest run src/flow/execute.test.ts`
-Expected: PASS (existing executor tests + the 6 new connection tests). Then `npx tsc --noEmit` — note it may still fail until compile.ts (Task 5) is updated, because the compiler still emits `{ fields }`. That's expected; the execute.test.ts suite passes.
+Expected: PASS (existing streaming executor tests + the 6 new connection tests). Then `npx tsc --noEmit` — note it may still fail until compile.ts (Task 5) is updated, because the compiler still emits `{ fields }`. That's expected; the execute.test.ts suite passes.
+
+Note: the new connection tests assert via `dbSpy().upserts` — under the streaming executor the destination writes **batched** multi-row upserts, so a single-row test produces ONE `upserts` entry whose `values` array contains that row's bound values; `expect(upserts[0].values).toContain(...)` still holds. The `per-row builtin runtime error` test expects `result.recordsOut === 1` and one error with `nodeId: 'map'` — the streaming map stage collects the error and skips the bad row, the good row flows to the batched sink, so this holds unchanged.
 
 - [ ] **Step 5: Commit**
 
