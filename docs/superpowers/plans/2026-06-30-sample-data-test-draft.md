@@ -372,9 +372,12 @@ describe('walkRow tracing', () => {
     await walkRow({ startNodeId: 'map', row, byId, outByNode, deps: deps(), sinks, collectError: () => {}, onRoutedNowhere: () => {}, collector });
     collector.commitRecord();
     const rec = collector.result().records[0];
-    expect(rec.nodes.map((n) => n.nodeId)).toEqual(['map']);
+    expect(rec.nodes.map((n) => n.nodeId)).toEqual(['map', 'destination']);
     expect(rec.nodes[0].in.current).toEqual({ first: 'Ada' });
     expect(rec.nodes[0].out!.current).toEqual({ name: 'Ada' });
+    // destination consumes the row, emits nothing downstream:
+    expect(rec.nodes[1].in.current).toEqual({ name: 'Ada' });
+    expect(rec.nodes[1].out).toBeNull();
     expect(rec.edges).toEqual([{ from: 'map', to: 'destination', payload: expect.objectContaining({ current: { name: 'Ada' } }) }]);
   });
 });
@@ -413,7 +416,7 @@ export async function walkRow(args: WalkArgs): Promise<void> {
     const node = byId.get(nodeId)!;
 
     if (node.kind === 'destination') {
-      collector?.edge(nodeId, nodeId, row); // terminal: payload reaching the sink
+      collector?.node(nodeId, row, null); // destination consumes the row, emits nothing downstream
       await sinks.push(nodeId, row);
       return;
     }
@@ -449,7 +452,7 @@ export async function walkRow(args: WalkArgs): Promise<void> {
 }
 ```
 
-Note: the terminal destination `edge(nodeId, nodeId, row)` records the payload arriving at the sink; the inspector treats a self-edge on a destination as "input to destination." (Simpler than tracking the prior edge; the prior non-route edge was already recorded before the loop advanced.)
+Note: the destination is recorded as a NODE with `out: null` (`collector?.node(nodeId, row, null)`) — it consumes the row and emits nothing downstream. The inspector's node-selection then shows the destination's IN. (An earlier draft used a `edge(nodeId, nodeId, row)` self-edge, but `from === to` is an ambiguous edge representation and contradicted the single-edge test; the incoming `…→destination` edge already carries the payload, and the destination node entry shows it as IN.) The inspector for the destination node shows `in` = the arriving payload, `out` = null.
 
 - [ ] **Step 4: Run test to verify it passes**
 
