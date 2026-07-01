@@ -52,3 +52,6 @@
 [submodule "eldrin-factorial"]
 	path = eldrin-factorial
 	url = git@github.com:eldrin-project/eldrin-factorial.git
+[submodule "eldrin-integration"]
+	path = eldrin-integration
+	url = git@github.com:eldrin-project/eldrin-integration.git
