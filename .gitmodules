@@ -55,3 +55,6 @@
 [submodule "eldrin-integration"]
 	path = eldrin-integration
 	url = git@github.com:eldrin-project/eldrin-integration.git
+[submodule "eldrin-workflows"]
+	path = eldrin-workflows
+	url = https://github.com/eldrin-project/eldrin-workflows.git
