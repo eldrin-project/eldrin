@@ -368,7 +368,7 @@ emailRoutes.post('/api/email/send', async (c) => {
 
   const db = c.get('db');
   const body = await c.req.json() as {
-    mailboxId: string;
+    mailboxId?: string;
     to: string[];
     cc?: string[];
     bcc?: string[];
@@ -382,20 +382,34 @@ emailRoutes.post('/api/email/send', async (c) => {
     relatedRecordId?: string;
   };
 
-  // Validate required fields
-  if (!body.mailboxId || !body.to?.length || !body.subject || !body.bodyHtml) {
-    return c.json({ error: 'Missing required fields: mailboxId, to, subject, bodyHtml' }, 400);
+  // Validate required fields (mailboxId is optional — cross-app callers
+  // don't know mailbox ids, so it falls back to the first active mailbox,
+  // matching the documented API contract)
+  if (!body.to?.length || !body.subject || !body.bodyHtml) {
+    return c.json({ error: 'Missing required fields: to, subject, bodyHtml' }, 400);
   }
 
-  // Verify mailbox ownership
-  const mailbox = await db.query.connectedMailboxes.findFirst({
-    where: and(
-      eq(connectedMailboxes.id, body.mailboxId),
-      eq(connectedMailboxes.userId, userId),
-    ),
-  });
+  // Verify mailbox ownership, or pick the user's first active mailbox
+  const mailbox = body.mailboxId
+    ? await db.query.connectedMailboxes.findFirst({
+        where: and(
+          eq(connectedMailboxes.id, body.mailboxId),
+          eq(connectedMailboxes.userId, userId),
+        ),
+      })
+    : await db.query.connectedMailboxes.findFirst({
+        where: and(
+          eq(connectedMailboxes.userId, userId),
+          eq(connectedMailboxes.syncStatus, 'active'),
+        ),
+      });
 
-  if (!mailbox) return c.json({ error: 'Mailbox not found' }, 404);
+  if (!mailbox) {
+    return c.json(
+      { error: body.mailboxId ? 'Mailbox not found' : 'No active mailbox connected' },
+      404,
+    );
+  }
 
   // Resolve provider thread ID if replying within an existing thread
   let providerThreadId: string | undefined;
@@ -464,7 +478,14 @@ emailRoutes.post('/api/email/send', async (c) => {
 
   // Send immediately via provider
   const provider = getProvider(mailbox.provider);
-  const accessToken = await getAccessToken(db, mailbox, c.env, provider);
+  let accessToken: string;
+  try {
+    accessToken = await getAccessToken(db, mailbox, c.env, provider);
+  } catch (error) {
+    console.error('[email] send: token refresh failed:', error);
+    const message = error instanceof Error ? error.message : 'token refresh failed';
+    return c.json({ error: `Mailbox token refresh failed: ${message}` }, 502);
+  }
 
   // Inject tracking pixel and link wrapping
   const baseUrl = new URL(c.req.url).origin;
@@ -477,17 +498,24 @@ emailRoutes.post('/api/email/send', async (c) => {
     // Tracking injection failed — send without tracking
   }
 
-  const sendResult = await provider.sendMessage(accessToken, {
-    from: mailbox.emailAddress,
-    to: body.to,
-    cc: body.cc,
-    bcc: body.bcc,
-    subject: body.subject,
-    bodyHtml: sendHtml,
-    bodyText: body.bodyText,
-    inReplyTo: body.inReplyTo,
-    threadId: providerThreadId,
-  });
+  let sendResult;
+  try {
+    sendResult = await provider.sendMessage(accessToken, {
+      from: mailbox.emailAddress,
+      to: body.to,
+      cc: body.cc,
+      bcc: body.bcc,
+      subject: body.subject,
+      bodyHtml: sendHtml,
+      bodyText: body.bodyText,
+      inReplyTo: body.inReplyTo,
+      threadId: providerThreadId,
+    });
+  } catch (error) {
+    console.error('[email] send: provider send failed:', error);
+    const message = error instanceof Error ? error.message : 'provider send failed';
+    return c.json({ error: `Send failed: ${message}` }, 502);
+  }
 
   // Create or update thread
   if (!localThreadId) {
