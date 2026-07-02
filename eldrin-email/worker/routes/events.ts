@@ -1,7 +1,9 @@
 /**
  * Platform event webhook handler.
  *
- * Receives events from the Eldrin platform event bus and processes them.
+ * Receives events pushed from the eldrin-core event bus. The live core
+ * delivers `{ deliveryId, event: { id, type, source, payload, version } }`;
+ * a flat `{ type, payload, userId? }` shape is also accepted for dev/testing.
  * Events are acknowledged immediately and processed asynchronously via waitUntil.
  */
 
@@ -15,36 +17,99 @@ import { prepareTrackedEmail } from '../services/tracking';
 
 type Variables = { db: Database; userId: string };
 
+/**
+ * Validate the shared service secret sent by eldrin-core on pushed events.
+ *
+ * When JWT_SECRET is configured the `X-Eldrin-App-Secret` header must match
+ * it; when unset the webhook stays open (standalone dev without a core).
+ * Plain equality is sufficient for the single-tenant platform today; kept in
+ * one helper so it can be swapped for an HMAC-based scheme later.
+ */
+function isValidServiceSecret(
+  configuredSecret: string | undefined,
+  header: string | undefined,
+): boolean {
+  if (!configuredSecret) return true;
+  return header === configuredSecret;
+}
+
+interface EventEnvelope {
+  type: string;
+  source: string | null;
+  payload: Record<string, unknown>;
+}
+
+function parseEnvelope(body: unknown): EventEnvelope | null {
+  if (typeof body !== 'object' || body === null) return null;
+  const record = body as Record<string, unknown>;
+  // Live core shape: { deliveryId, event: { type, source, payload } }
+  const candidate =
+    typeof record.event === 'object' && record.event !== null
+      ? (record.event as Record<string, unknown>)
+      : record;
+
+  if (typeof candidate.type !== 'string' || candidate.type.length === 0) return null;
+  const payload =
+    typeof candidate.payload === 'object' && candidate.payload !== null
+      ? (candidate.payload as Record<string, unknown>)
+      : {};
+  return {
+    type: candidate.type,
+    source: typeof candidate.source === 'string' ? candidate.source : null,
+    payload,
+  };
+}
+
 export const eventRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // ── POST /api/_events/webhook — receive platform events ─────────────────────
 
 eventRoutes.post('/api/_events/webhook', async (c) => {
-  const body = await c.req.json() as {
-    type: string;
-    payload: Record<string, unknown>;
-    userId?: string;
-  };
+  if (!isValidServiceSecret(c.env.JWT_SECRET, c.req.header('X-Eldrin-App-Secret'))) {
+    return c.json({ error: 'Invalid service secret' }, 401);
+  }
 
-  console.log('[email] Received event:', body.type);
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: 'Invalid JSON body' }, 400);
+  }
+
+  const envelope = parseEnvelope(body);
+  if (!envelope) {
+    return c.json({ error: 'Missing event type' }, 400);
+  }
+
+  console.log('[email] Received event:', envelope.type);
 
   const db = c.get('db');
 
-  switch (body.type) {
-    case 'email.send.requested':
+  switch (envelope.type) {
+    case 'email.send.requested': {
+      // The live envelope carries userId inside the event payload; the flat
+      // dev shape may still put it at the top level of the body.
+      const topLevelUserId = (body as Record<string, unknown>).userId;
+      const userId =
+        typeof envelope.payload.userId === 'string'
+          ? envelope.payload.userId
+          : typeof topLevelUserId === 'string'
+            ? topLevelUserId
+            : undefined;
       c.executionCtx.waitUntil(
-        handleSendRequested(db, body.payload, body.userId, c.env, c.req.url),
+        handleSendRequested(db, envelope.payload, userId, c.env, c.req.url),
       );
       break;
+    }
 
     case 'user.deleted':
       c.executionCtx.waitUntil(
-        handleUserDeleted(db, body.payload),
+        handleUserDeleted(db, envelope.payload),
       );
       break;
 
     default:
-      console.log('[email] Unhandled event type:', body.type);
+      console.log('[email] Unhandled event type:', envelope.type);
   }
 
   return c.json({ received: true });
