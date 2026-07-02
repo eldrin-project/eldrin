@@ -54,9 +54,9 @@ Per `01_core_crm_foundation_mvp/phases/phase-07-email-integration/PLAN.md`:
 
 ### 3. Finish eldrin-workflows instead of building CRM Phase-2 automation
 - [x] Webhook parses the live core envelope + verifies the service secret *(2026-07-02; live-validated — a CRM `contact.created` created a run with correct triggerData)*
-- [ ] **Executor reliability:** the webhook fires `executeWorkflow` fire-and-forget without `executionCtx.waitUntil`, so workerd cancels it after the response — the validation run is stuck `running` with zero step rows. Wrap execution in `waitUntil` (and consider marking interrupted runs failed on startup).
-- [ ] Wire event emitter (`createEventClient`) — unstubs `emit_event` + lifecycle events (secret now flows automatically from the SDK)
-- [ ] `send_email` step → emit `email.send.requested` (eldrin-email already subscribes)
+- [x] **Executor reliability:** all `executeWorkflow` call sites (event webhook, cron callback, manual run) now run inside `executionCtx.waitUntil` *(2026-07-02; one legacy stuck run 710a72a6 remains in local D1)*
+- [ ] Wire event emitter (`createEventClient`) — unstubs `emit_event` + workflow lifecycle events (secret + env plumbing now in place; `context.env` reaches step runners)
+- [x] `send_email` step → emits `email.send.requested` *(2026-07-02; live-validated: contact.created → run completed → event delivered to eldrin-email through the secured bus; found+fixed core subscriber-dedup 500 on multi-pattern subscriptions)*
 - [ ] Implement `call_app_api` runner + permission middleware + test infra (repo has none)
 - [ ] Decision recorded: CRM REQ-2.1 is delivered by CRM events + eldrin-workflows, not a second engine
 
