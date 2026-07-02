@@ -4,51 +4,16 @@
  * When sync_depth is 'metadata' or 'thread_only', email bodies are not stored
  * during sync. This service fetches full message content from the provider API
  * when a user opens a message, and optionally caches it in D1.
+ *
+ * Provider-agnostic: uses the EmailProvider interface via getProvider().
  */
 
 import { eq, and } from 'drizzle-orm';
 import type { Database } from '../db';
 import { connectedMailboxes, emails } from '../db/schema';
-import { decryptToken, encryptToken } from './crypto';
-import { refreshGmailToken } from './oauth-gmail';
-import { getMessage, parseGmailMessage } from './gmail-client';
-import { now } from '../utils';
+import { getProvider, getAccessToken } from './providers';
 
 type MailboxRow = typeof connectedMailboxes.$inferSelect;
-
-// ── Token management (shared pattern with email-sync) ────────────────────────
-
-async function getAccessToken(
-  db: Database,
-  mailbox: MailboxRow,
-  env: Env,
-): Promise<string> {
-  const accessToken = await decryptToken(mailbox.accessTokenEncrypted, env.JWT_SECRET);
-
-  if (mailbox.tokenExpiresAt > now()) {
-    return accessToken;
-  }
-
-  const refreshToken = await decryptToken(mailbox.refreshTokenEncrypted, env.JWT_SECRET);
-  const refreshed = await refreshGmailToken(
-    refreshToken,
-    env.GOOGLE_CLIENT_ID,
-    env.GOOGLE_CLIENT_SECRET,
-  );
-
-  const newEncrypted = await encryptToken(refreshed.accessToken, env.JWT_SECRET);
-  const timestamp = now();
-
-  await db.update(connectedMailboxes)
-    .set({
-      accessTokenEncrypted: newEncrypted,
-      tokenExpiresAt: timestamp + refreshed.expiresIn * 1000,
-      updatedAt: timestamp,
-    })
-    .where(eq(connectedMailboxes.id, mailbox.id));
-
-  return refreshed.accessToken;
-}
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
@@ -85,11 +50,11 @@ export async function fetchMessageBody(
   }
 
   // Fetch from provider
-  const accessToken = await getAccessToken(db, mailbox, env);
+  const provider = getProvider(mailbox.provider);
+  const accessToken = await getAccessToken(db, mailbox, env, provider);
 
   try {
-    const raw = await getMessage(accessToken, email.providerMessageId, 'full');
-    const parsed = parseGmailMessage(raw);
+    const parsed = await provider.getMessage(accessToken, email.providerMessageId, 'full');
 
     // Cache the fetched body in D1
     await db.update(emails)
@@ -127,7 +92,8 @@ export async function fetchThreadBodies(
     throw new Error('Thread not found or has no emails');
   }
 
-  const accessToken = await getAccessToken(db, mailbox, env);
+  const provider = getProvider(mailbox.provider);
+  const accessToken = await getAccessToken(db, mailbox, env, provider);
   const results: FetchedBody[] = [];
 
   for (const email of threadEmails) {
@@ -138,8 +104,7 @@ export async function fetchThreadBodies(
     }
 
     try {
-      const raw = await getMessage(accessToken, email.providerMessageId, 'full');
-      const parsed = parseGmailMessage(raw);
+      const parsed = await provider.getMessage(accessToken, email.providerMessageId, 'full');
 
       // Cache in D1
       await db.update(emails)

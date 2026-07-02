@@ -2,16 +2,14 @@
  * Scheduled send processor.
  *
  * Finds emails with status='scheduled' and scheduled_at <= now(),
- * sends them via the Gmail API, and updates their status to 'sent'.
+ * sends them via the appropriate provider, and updates their status to 'sent'.
  */
 
 import { eq, and, lte } from 'drizzle-orm';
 import type { Database } from '../db';
 import { connectedMailboxes, emailThreads, emails } from '../db/schema';
 import { now } from '../utils';
-import { decryptToken, encryptToken } from './crypto';
-import { refreshGmailToken } from './oauth-gmail';
-import { sendMessage } from './gmail-client';
+import { getProvider, getAccessToken } from './providers';
 
 /**
  * Process all scheduled emails that are due.
@@ -42,27 +40,9 @@ export async function processScheduledSends(db: Database, env: Env): Promise<num
         continue;
       }
 
-      // Get access token (refresh if needed)
-      let accessToken = await decryptToken(mailbox.accessTokenEncrypted, env.JWT_SECRET);
-
-      if (mailbox.tokenExpiresAt <= timestamp) {
-        const refreshToken = await decryptToken(mailbox.refreshTokenEncrypted, env.JWT_SECRET);
-        const refreshed = await refreshGmailToken(
-          refreshToken,
-          env.GOOGLE_CLIENT_ID,
-          env.GOOGLE_CLIENT_SECRET,
-        );
-        accessToken = refreshed.accessToken;
-
-        const newEncrypted = await encryptToken(refreshed.accessToken, env.JWT_SECRET);
-        await db.update(connectedMailboxes)
-          .set({
-            accessTokenEncrypted: newEncrypted,
-            tokenExpiresAt: timestamp + refreshed.expiresIn * 1000,
-            updatedAt: timestamp,
-          })
-          .where(eq(connectedMailboxes.id, mailbox.id));
-      }
+      // Get access token via provider abstraction
+      const provider = getProvider(mailbox.provider);
+      const accessToken = await getAccessToken(db, mailbox, env, provider);
 
       // Resolve provider thread ID
       let providerThreadId: string | undefined;
@@ -74,8 +54,8 @@ export async function processScheduledSends(db: Database, env: Env): Promise<num
         providerThreadId = thread.providerThreadId;
       }
 
-      // Send via Gmail
-      const result = await sendMessage(accessToken, {
+      // Send via provider
+      const result = await provider.sendMessage(accessToken, {
         from: mailbox.emailAddress,
         to: JSON.parse(email.toAddresses),
         cc: email.ccAddresses ? JSON.parse(email.ccAddresses) : undefined,
@@ -93,7 +73,7 @@ export async function processScheduledSends(db: Database, env: Env): Promise<num
           status: 'sent',
           sentAt: now(),
           providerMessageId: result.id,
-          messageId: `<${result.id}@gmail.com>`,
+          messageId: `<${result.id}@${mailbox.provider}.provider>`,
         })
         .where(eq(emails.id, email.id));
 

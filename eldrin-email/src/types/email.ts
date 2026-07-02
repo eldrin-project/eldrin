@@ -52,6 +52,9 @@ export interface SentEmailRow {
   subject: string | null;
   snippet: string | null;
   sentAt: number;
+  openCount: number;
+  clickCount: number;
+  firstOpenedAt: number | null;
 }
 
 export interface SearchResult {

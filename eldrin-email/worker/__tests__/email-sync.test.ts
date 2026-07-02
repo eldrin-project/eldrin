@@ -80,6 +80,8 @@ const ENV: Env = {
   JWT_SECRET: 'test-jwt-secret',
   GOOGLE_CLIENT_ID: 'test-client-id',
   GOOGLE_CLIENT_SECRET: 'test-client-secret',
+  MICROSOFT_CLIENT_ID: 'test-ms-client-id',
+  MICROSOFT_CLIENT_SECRET: 'test-ms-client-secret',
 };
 
 function createTestMailbox(overrides?: Record<string, unknown>) {

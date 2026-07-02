@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuthHeaders } from '@eldrin-project/eldrin-app-react';
 import { toast } from 'sonner';
-import { Send, Search, RefreshCw } from 'lucide-react';
+import { Send, Search, RefreshCw, Eye, MousePointerClick } from 'lucide-react';
 import type { SentEmailRow, Pagination } from '../../types/email';
 import * as api from '../../api';
 
 interface SentListProps {
   apiBase: string;
   onNavigate: (path: string) => void;
+  mailboxId?: string;
 }
 
 function formatDate(timestamp: number): string {
@@ -37,7 +38,7 @@ function recipientDisplay(toAddresses: string[]): string {
   return `${display} +${toAddresses.length - 1}`;
 }
 
-export function SentList({ apiBase, onNavigate }: SentListProps) {
+export function SentList({ apiBase, onNavigate, mailboxId }: SentListProps) {
   const authHeaders = useAuthHeaders();
   const headersRef = useRef(authHeaders);
   headersRef.current = authHeaders;
@@ -61,6 +62,7 @@ export function SentList({ apiBase, onNavigate }: SentListProps) {
           page,
           limit: 25,
           search: search || undefined,
+          mailboxId,
         });
         setEmails(result.data);
         setPagination(result.pagination);
@@ -70,7 +72,7 @@ export function SentList({ apiBase, onNavigate }: SentListProps) {
         setLoading(false);
       }
     },
-    [apiBase, search],
+    [apiBase, search, mailboxId],
   );
 
   useEffect(() => {
@@ -153,10 +155,26 @@ export function SentList({ apiBase, onNavigate }: SentListProps) {
                   </div>
                 </div>
 
-                {/* Date */}
-                <span className="text-xs text-base-content/50 whitespace-nowrap flex-shrink-0">
-                  {formatDate(email.sentAt)}
-                </span>
+                {/* Tracking indicators */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {email.openCount > 0 && (
+                    <span className="flex items-center gap-0.5 text-xs text-success" title={`Opened ${email.openCount} time${email.openCount !== 1 ? 's' : ''}`}>
+                      <Eye className="w-3.5 h-3.5" />
+                      {email.openCount}
+                    </span>
+                  )}
+                  {email.clickCount > 0 && (
+                    <span className="flex items-center gap-0.5 text-xs text-info" title={`${email.clickCount} click${email.clickCount !== 1 ? 's' : ''}`}>
+                      <MousePointerClick className="w-3.5 h-3.5" />
+                      {email.clickCount}
+                    </span>
+                  )}
+
+                  {/* Date */}
+                  <span className="text-xs text-base-content/50 whitespace-nowrap">
+                    {formatDate(email.sentAt)}
+                  </span>
+                </div>
               </button>
             ))}
           </div>

@@ -5,6 +5,10 @@ import migrations from './migrations.generated';
 import { createDb, type Database } from './db';
 import { mailboxRoutes } from './routes/mailbox';
 import { emailRoutes } from './routes/emails';
+import { templateRoutes } from './routes/templates';
+import { trackingRoutes } from './routes/tracking';
+import { integrationRoutes } from './routes/integration';
+import { eventRoutes } from './routes/events';
 import { handleScheduled } from './cron';
 
 type Variables = {
@@ -79,13 +83,15 @@ app.route('', mailboxRoutes);
 // Phase 4: Inbox, thread, sent, search routes
 app.route('', emailRoutes);
 
-// Event webhook handler (receives platform events)
-app.post('/api/_events/webhook', async (c) => {
-  const body = await c.req.json();
-  console.log('[email] Received event:', body.type);
-  // Event handling will be implemented in Phase 8
-  return c.json({ received: true });
-});
+// Phase 6: Email templates
+app.route('', templateRoutes);
+
+// Phase 7: Email open & click tracking (public endpoints)
+app.route('', trackingRoutes);
+
+// Phase 8: Cross-app integration (send-template, history, events)
+app.route('', integrationRoutes);
+app.route('', eventRoutes);
 
 // Static asset fallback
 app.get('*', async (c) => {

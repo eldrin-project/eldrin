@@ -9,6 +9,11 @@ import {
   getGoogleUserInfo,
   revokeGmailToken,
 } from '../services/oauth-gmail';
+import {
+  getOutlookAuthUrl,
+  exchangeOutlookCode,
+  getMicrosoftUserInfo,
+} from '../services/oauth-outlook';
 import { syncMailbox } from '../services/email-sync';
 
 type Variables = { db: Database; userId: string };
@@ -170,6 +175,140 @@ mailboxRoutes.get('/api/mailbox/callback/gmail', async (c) => {
   }
 });
 
+// ── GET /api/mailbox/connect/outlook — redirect to Microsoft OAuth ───────────
+
+mailboxRoutes.get('/api/mailbox/connect/outlook', async (c) => {
+  const connectToken = c.req.query('token');
+  if (!connectToken) return c.json({ error: 'Missing token' }, 400);
+
+  let userId: string;
+  try {
+    const payload = JSON.parse(await decryptToken(connectToken, c.env.JWT_SECRET));
+    if (payload.expiresAt < now()) {
+      return c.json({ error: 'Token expired' }, 401);
+    }
+    userId = payload.userId;
+  } catch {
+    return c.json({ error: 'Invalid token' }, 401);
+  }
+
+  const redirectUri = new URL('/api/mailbox/callback/outlook', c.req.url).toString();
+  const state = btoa(JSON.stringify({ userId, ts: now() }));
+
+  const authUrl = getOutlookAuthUrl(c.env.MICROSOFT_CLIENT_ID, redirectUri, state);
+  return c.redirect(authUrl);
+});
+
+// ── GET /api/mailbox/callback/outlook — handle Microsoft OAuth callback ─────
+
+mailboxRoutes.get('/api/mailbox/callback/outlook', async (c) => {
+  const code = c.req.query('code');
+  const state = c.req.query('state');
+  const error = c.req.query('error');
+
+  if (error) {
+    return c.html(`<script>window.close();</script><p>Authorization cancelled: ${error}</p>`);
+  }
+
+  if (!code || !state) {
+    return c.json({ error: 'Missing code or state parameter' }, 400);
+  }
+
+  let userId: string;
+  try {
+    const parsed = JSON.parse(atob(state)) as { userId: string; ts: number };
+    userId = parsed.userId;
+
+    if (now() - parsed.ts > 10 * 60 * 1000) {
+      return c.json({ error: 'OAuth state expired' }, 400);
+    }
+  } catch {
+    return c.json({ error: 'Invalid state parameter' }, 400);
+  }
+
+  const redirectUri = new URL('/api/mailbox/callback/outlook', c.req.url);
+  redirectUri.search = '';
+  const redirectUriStr = redirectUri.toString();
+
+  try {
+    const tokens = await exchangeOutlookCode(
+      code,
+      c.env.MICROSOFT_CLIENT_ID,
+      c.env.MICROSOFT_CLIENT_SECRET,
+      redirectUriStr,
+    );
+
+    const userInfo = await getMicrosoftUserInfo(tokens.accessToken);
+
+    const [accessTokenEncrypted, refreshTokenEncrypted] = await Promise.all([
+      encryptToken(tokens.accessToken, c.env.JWT_SECRET),
+      encryptToken(tokens.refreshToken, c.env.JWT_SECRET),
+    ]);
+
+    const db = c.get('db');
+    const timestamp = now();
+    const id = generateId();
+
+    // Upsert: if same provider+email already exists, update tokens
+    const existing = await db.query.connectedMailboxes.findFirst({
+      where: and(
+        eq(connectedMailboxes.provider, 'outlook'),
+        eq(connectedMailboxes.emailAddress, userInfo.email),
+      ),
+    });
+
+    if (existing) {
+      await db.update(connectedMailboxes)
+        .set({
+          accessTokenEncrypted,
+          refreshTokenEncrypted,
+          tokenExpiresAt: timestamp + tokens.expiresIn * 1000,
+          displayName: userInfo.name,
+          syncStatus: 'active',
+          errorMessage: null,
+          updatedAt: timestamp,
+        })
+        .where(eq(connectedMailboxes.id, existing.id));
+    } else {
+      await db.insert(connectedMailboxes).values({
+        id,
+        userId,
+        provider: 'outlook',
+        emailAddress: userInfo.email,
+        displayName: userInfo.name,
+        accessTokenEncrypted,
+        refreshTokenEncrypted,
+        tokenExpiresAt: timestamp + tokens.expiresIn * 1000,
+        syncStatus: 'active',
+        syncDepth: 'metadata',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      });
+    }
+
+    return c.html(`
+      <script>
+        if (window.opener) {
+          window.opener.postMessage({ type: 'eldrin-email:mailbox-connected' }, '*');
+        }
+        window.close();
+      </script>
+      <p>Outlook connected successfully. You can close this window.</p>
+    `);
+  } catch (err) {
+    console.error('[email] Outlook OAuth callback error:', err);
+    return c.html(`
+      <script>
+        if (window.opener) {
+          window.opener.postMessage({ type: 'eldrin-email:mailbox-error', error: 'Connection failed' }, '*');
+        }
+        window.close();
+      </script>
+      <p>Failed to connect Outlook. Please try again.</p>
+    `);
+  }
+});
+
 // ── GET /api/mailboxes — list user's connected mailboxes ─────────────────────
 
 mailboxRoutes.get('/api/mailboxes', async (c) => {
@@ -216,12 +355,14 @@ mailboxRoutes.delete('/api/mailboxes/:id', async (c) => {
 
   if (!mailbox) return c.json({ error: 'Mailbox not found' }, 404);
 
-  // Best-effort token revocation
-  try {
-    const refreshToken = await decryptToken(mailbox.refreshTokenEncrypted, c.env.JWT_SECRET);
-    await revokeGmailToken(refreshToken);
-  } catch (err) {
-    console.warn('[email] Token revocation failed (continuing with deletion):', err);
+  // Best-effort token revocation (Gmail only — Microsoft has no simple revoke endpoint)
+  if (mailbox.provider === 'gmail') {
+    try {
+      const refreshToken = await decryptToken(mailbox.refreshTokenEncrypted, c.env.JWT_SECRET);
+      await revokeGmailToken(refreshToken);
+    } catch (err) {
+      console.warn('[email] Token revocation failed (continuing with deletion):', err);
+    }
   }
 
   await db.delete(connectedMailboxes).where(eq(connectedMailboxes.id, id));

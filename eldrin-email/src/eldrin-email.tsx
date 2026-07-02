@@ -18,6 +18,7 @@ import {
   DatabaseProvider,
 } from '@eldrin-project/eldrin-app-react';
 import { Root, type RootProps } from './root.component';
+import { registerEmailCommands, unregisterEmailCommands } from './lib/commands';
 
 function getOrCreateContainer(): HTMLElement {
   const containerId = 'single-spa-application:eldrin-email';
@@ -60,4 +61,18 @@ const reactLifecycle = singleSpaReact({
 
 const lifecycles = combineLifecycles(eldrinLifecycle, reactLifecycle);
 
-export const { bootstrap, mount, unmount } = lifecycles;
+const originalMount = lifecycles.mount as (props: Record<string, unknown>) => Promise<void>;
+const originalUnmount = lifecycles.unmount as (props: Record<string, unknown>) => Promise<void>;
+
+export const bootstrap = lifecycles.bootstrap;
+
+export async function mount(props: Record<string, unknown>): Promise<void> {
+  const apiBase = (props as { manifest?: { baseUrl?: string } }).manifest?.baseUrl || '';
+  registerEmailCommands(apiBase);
+  return originalMount(props);
+}
+
+export async function unmount(props: Record<string, unknown>): Promise<void> {
+  unregisterEmailCommands();
+  return originalUnmount(props);
+}

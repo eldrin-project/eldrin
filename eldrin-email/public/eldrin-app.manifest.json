@@ -81,7 +81,8 @@
     "sideNav": [
       { "label": "Inbox", "icon": "inbox", "path": "/eldrin-email" },
       { "label": "Sent", "icon": "send", "path": "/eldrin-email/sent" },
-      { "label": "Templates", "icon": "file-text", "path": "/eldrin-email/templates" }
+      { "label": "Templates", "icon": "file-text", "path": "/eldrin-email/templates" },
+      { "label": "Settings", "icon": "settings", "path": "/eldrin-email/settings" }
     ]
   },
   "settings": {

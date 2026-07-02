@@ -40,14 +40,19 @@ function senderInitial(name: string | null, address: string): string {
   return address.charAt(0).toUpperCase();
 }
 
+// Force email HTML to render with light defaults regardless of app theme.
+// Without this, browser propagates color-scheme:dark into the iframe,
+// making the default background dark while email text stays dark = invisible.
+const EMAIL_BASE_STYLE = '<style>html,body{background:#fff;color:#000;color-scheme:light}</style>';
+
 function MessageBody({ message }: { message: EmailMessage }) {
   if (message.bodyHtml) {
     return (
       <iframe
-        srcDoc={message.bodyHtml}
+        srcDoc={`${EMAIL_BASE_STYLE}${message.bodyHtml}`}
         sandbox=""
-        className="w-full border-0 min-h-[100px]"
-        style={{ height: '300px' }}
+        className="w-full border-0 min-h-[100px] rounded"
+        style={{ height: '300px', colorScheme: 'light' }}
         onLoad={(e) => {
           // Auto-resize iframe to content height
           const iframe = e.target as HTMLIFrameElement;

@@ -86,6 +86,8 @@ export const emails = sqliteTable(
     isRead: integer('is_read', { mode: 'boolean' }).notNull().default(false),
     status: text('status').notNull().default('sent'), // sent | scheduled | draft
     scheduledAt: integer('scheduled_at', { mode: 'number' }),
+    relatedApp: text('related_app'), // Cross-app provenance (e.g. 'eldrin-crm')
+    relatedRecordId: text('related_record_id'), // Source record ID (e.g. deal ID)
     createdAt: integer('created_at', { mode: 'number' }).notNull(),
   },
   (table) => [
@@ -94,9 +96,67 @@ export const emails = sqliteTable(
     index('idx_emails_from').on(table.fromAddress),
     index('idx_emails_is_read').on(table.isRead),
     index('idx_emails_status').on(table.status, table.scheduledAt),
+    index('idx_emails_related').on(table.relatedApp, table.relatedRecordId),
   ],
 );
 
-// Future phases:
-// Phase 6: email_templates
-// Phase 7: email_tracking, tracking_events
+// ── Phase 6: Email Templates ────────────────────────────────────────────────
+
+export const emailTemplates = sqliteTable(
+  'email_templates',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    subject: text('subject').notNull(),
+    bodyHtml: text('body_html').notNull(),
+    bodyText: text('body_text'),
+    mergeFields: text('merge_fields'), // JSON array of detected field names
+    category: text('category'),
+    isShared: integer('is_shared', { mode: 'boolean' }).notNull().default(false),
+    usageCount: integer('usage_count', { mode: 'number' }).notNull().default(0),
+    ownerId: text('owner_id').notNull(),
+    createdAt: integer('created_at', { mode: 'number' }).notNull(),
+    updatedAt: integer('updated_at', { mode: 'number' }).notNull(),
+  },
+  (table) => [
+    index('idx_templates_owner').on(table.ownerId),
+    index('idx_templates_shared').on(table.isShared),
+    index('idx_templates_category').on(table.category),
+  ],
+);
+
+// ── Phase 7: Email Tracking ─────────────────────────────────────────────────
+
+export const emailTracking = sqliteTable(
+  'email_tracking',
+  {
+    id: text('id').primaryKey(),
+    emailId: text('email_id').notNull(),
+    trackingId: text('tracking_id').notNull().unique(),
+    openCount: integer('open_count', { mode: 'number' }).notNull().default(0),
+    clickCount: integer('click_count', { mode: 'number' }).notNull().default(0),
+    firstOpenedAt: integer('first_opened_at', { mode: 'number' }),
+    lastOpenedAt: integer('last_opened_at', { mode: 'number' }),
+    createdAt: integer('created_at', { mode: 'number' }).notNull(),
+  },
+  (table) => [
+    index('idx_tracking_email').on(table.emailId),
+    uniqueIndex('idx_tracking_tracking_id').on(table.trackingId),
+  ],
+);
+
+export const trackingEvents = sqliteTable(
+  'tracking_events',
+  {
+    id: text('id').primaryKey(),
+    trackingId: text('tracking_id').notNull(),
+    eventType: text('event_type').notNull(), // 'open' | 'click'
+    url: text('url'),
+    userAgent: text('user_agent'),
+    ipAddress: text('ip_address'),
+    createdAt: integer('created_at', { mode: 'number' }).notNull(),
+  },
+  (table) => [
+    index('idx_tracking_events_tracking').on(table.trackingId),
+  ],
+);

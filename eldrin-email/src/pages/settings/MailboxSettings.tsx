@@ -111,7 +111,7 @@ export function MailboxSettings({ apiBase }: MailboxSettingsProps) {
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
       if (event.data?.type === 'eldrin-email:mailbox-connected') {
-        toast.success('Gmail connected successfully');
+        toast.success('Mailbox connected successfully');
         fetchMailboxes();
       } else if (event.data?.type === 'eldrin-email:mailbox-error') {
         toast.error(event.data.error || 'Failed to connect mailbox');
@@ -205,10 +205,12 @@ export function MailboxSettings({ apiBase }: MailboxSettingsProps) {
             <Mail className="w-4 h-4" />
             Connect Gmail
           </button>
-          <button className="btn btn-ghost btn-sm gap-2" disabled>
+          <button
+            className="btn btn-ghost btn-sm gap-2"
+            onClick={() => api.connectOutlook(apiBase, authHeaders).catch(() => toast.error('Failed to start Outlook connection'))}
+          >
             <Mail className="w-4 h-4" />
             Connect Outlook
-            <span className="badge badge-sm">Soon</span>
           </button>
         </div>
       </div>
@@ -219,7 +221,7 @@ export function MailboxSettings({ apiBase }: MailboxSettingsProps) {
           <div className="flex flex-col items-center justify-center py-16 text-base-content/50 border border-base-300 rounded-box">
             <Mail className="w-12 h-12 mb-4 opacity-30" />
             <h3 className="text-lg font-medium mb-1">No mailboxes connected</h3>
-            <p className="text-sm">Connect your Gmail account to get started with email.</p>
+            <p className="text-sm">Connect your Gmail or Outlook account to get started.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4 max-w-2xl">

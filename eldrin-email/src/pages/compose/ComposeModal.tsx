@@ -19,9 +19,12 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  FileText,
+  Braces,
 } from 'lucide-react';
 import * as api from '../../api';
 import type { Mailbox } from '../../types/mailbox';
+import type { TemplateSummary } from '../../types/template';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -106,9 +109,26 @@ function EmailPillInput({
   );
 }
 
+// ── Merge Field Groups (for insertion in compose) ───────────────────────────
+
+const COMPOSE_MERGE_FIELDS = [
+  { label: 'Contact', fields: ['contact.firstName', 'contact.lastName', 'contact.email', 'contact.company'] },
+  { label: 'Company', fields: ['company.name', 'company.domain'] },
+  { label: 'Deal', fields: ['deal.name', 'deal.value'] },
+  { label: 'User', fields: ['user.name', 'user.email'] },
+];
+
 // ── Editor Toolbar ──────────────────────────────────────────────────────────
 
-function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
+function EditorToolbar({
+  editor,
+  onInsertMergeField,
+}: {
+  editor: ReturnType<typeof useEditor>;
+  onInsertMergeField?: (field: string) => void;
+}) {
+  const [showFields, setShowFields] = useState(false);
+
   if (!editor) return null;
 
   function toggleLink() {
@@ -192,6 +212,48 @@ function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
       >
         <Minus className="w-3.5 h-3.5" />
       </button>
+
+      {/* Merge field insertion */}
+      {onInsertMergeField && (
+        <>
+          <div className="w-px h-4 bg-base-300 mx-1" />
+          <div className="relative">
+            <button
+              type="button"
+              className={`btn btn-xs btn-ghost gap-1 ${showFields ? 'btn-active' : ''}`}
+              onClick={() => setShowFields(!showFields)}
+              title="Insert merge field"
+            >
+              <Braces className="w-3.5 h-3.5" />
+              <ChevronDown className="w-3 h-3" />
+            </button>
+            {showFields && (
+              <div className="absolute left-0 top-full mt-1 z-50 bg-base-100 border border-base-300 rounded-box shadow-lg w-52 max-h-56 overflow-y-auto">
+                {COMPOSE_MERGE_FIELDS.map((group) => (
+                  <div key={group.label}>
+                    <div className="px-3 py-1 text-xs font-semibold text-base-content/50 uppercase tracking-wider">
+                      {group.label}
+                    </div>
+                    {group.fields.map((field) => (
+                      <button
+                        key={field}
+                        type="button"
+                        className="w-full text-left px-3 py-1.5 text-sm hover:bg-base-200 transition-colors"
+                        onClick={() => {
+                          onInsertMergeField(field);
+                          setShowFields(false);
+                        }}
+                      >
+                        <code className="text-xs">{`{{${field}}}`}</code>
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -214,6 +276,8 @@ export function ComposeModal({ apiBase, context, onClose, onSent }: ComposeModal
   const [scheduleTime, setScheduleTime] = useState('');
   const [mailboxes, setMailboxes] = useState<Mailbox[]>([]);
   const [selectedMailboxId, setSelectedMailboxId] = useState('');
+  const [templates, setTemplates] = useState<TemplateSummary[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   // Build initial HTML content with quoted text for reply/forward
   const initialContent = context?.quotedHtml
@@ -234,21 +298,49 @@ export function ComposeModal({ apiBase, context, onClose, onSent }: ComposeModal
     },
   });
 
-  // Fetch mailboxes on mount
+  // Fetch mailboxes + templates on mount
   useEffect(() => {
     async function load() {
       try {
-        const result = await api.listMailboxes(apiBase, headersRef.current);
-        setMailboxes(result.mailboxes);
-        if (result.mailboxes.length > 0) {
-          setSelectedMailboxId(result.mailboxes[0].id);
+        const [mbResult, tplResult] = await Promise.all([
+          api.listMailboxes(apiBase, headersRef.current),
+          api.listTemplates(apiBase, headersRef.current),
+        ]);
+        setMailboxes(mbResult.mailboxes);
+        if (mbResult.mailboxes.length > 0) {
+          setSelectedMailboxId(mbResult.mailboxes[0].id);
         }
+        setTemplates(tplResult.templates);
       } catch {
         toast.error('Failed to load mailboxes');
       }
     }
     load();
   }, [apiBase]);
+
+  // Apply a template: load its body into the editor and subject
+  const applyTemplate = useCallback(async (templateId: string) => {
+    if (!templateId) {
+      setSelectedTemplateId(null);
+      return;
+    }
+    try {
+      const { template } = await api.getTemplate(apiBase, headersRef.current, templateId);
+      // Only overwrite if composing a new message (don't clobber reply context)
+      if (context?.mode === 'new' || !context) {
+        setSubject(template.subject);
+      }
+      editor?.commands.setContent(template.bodyHtml);
+      setSelectedTemplateId(templateId);
+    } catch {
+      toast.error('Failed to load template');
+    }
+  }, [apiBase, context, editor]);
+
+  // Insert merge field at cursor position
+  const insertMergeField = useCallback((field: string) => {
+    editor?.chain().focus().insertContent(`{{${field}}}`).run();
+  }, [editor]);
 
   const handleSend = useCallback(async (scheduled = false) => {
     if (to.length === 0) {
@@ -289,6 +381,11 @@ export function ComposeModal({ apiBase, context, onClose, onSent }: ComposeModal
         scheduledAt,
       });
 
+      // Increment template usage count
+      if (selectedTemplateId) {
+        api.incrementTemplateUsage(apiBase, headersRef.current, selectedTemplateId).catch(() => {});
+      }
+
       toast.success(
         result.status === 'scheduled' ? 'Email scheduled' : 'Email sent',
       );
@@ -299,7 +396,7 @@ export function ComposeModal({ apiBase, context, onClose, onSent }: ComposeModal
     } finally {
       setSending(false);
     }
-  }, [to, cc, bcc, subject, editor, selectedMailboxId, apiBase, context, scheduleDate, scheduleTime, onClose, onSent]);
+  }, [to, cc, bcc, subject, editor, selectedMailboxId, selectedTemplateId, apiBase, context, scheduleDate, scheduleTime, onClose, onSent]);
 
   const modeLabel = {
     new: 'New Message',
@@ -347,6 +444,27 @@ export function ComposeModal({ apiBase, context, onClose, onSent }: ComposeModal
               </div>
             )}
 
+            {/* Template selector (new message mode only) */}
+            {templates.length > 0 && (context?.mode === 'new' || !context) && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-base-content/50 w-10 flex-shrink-0">
+                  <FileText className="w-4 h-4" />
+                </span>
+                <select
+                  className="select select-sm select-bordered flex-1"
+                  value={selectedTemplateId ?? ''}
+                  onChange={(e) => applyTemplate(e.target.value)}
+                >
+                  <option value="">No template</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}{t.category ? ` (${t.category})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <EmailPillInput label="To" emails={to} onChange={setTo} />
 
             {/* CC/BCC toggle */}
@@ -380,7 +498,7 @@ export function ComposeModal({ apiBase, context, onClose, onSent }: ComposeModal
 
           {/* Rich text editor */}
           <div className="border-t border-base-300">
-            <EditorToolbar editor={editor} />
+            <EditorToolbar editor={editor} onInsertMergeField={insertMergeField} />
             <EditorContent editor={editor} />
           </div>
         </div>

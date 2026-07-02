@@ -1,6 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Inbox, Send, FileText, Settings } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useAuthHeaders } from '@eldrin-project/eldrin-app-react';
+import { Inbox, Send, FileText, Settings, ChevronDown } from 'lucide-react';
 import { Toaster } from 'sonner';
+import type { Mailbox } from './types/mailbox';
+import * as api from './api';
 import { InboxList } from './pages/inbox/InboxList';
 import { ThreadView } from './pages/inbox/ThreadView';
 import { SentList } from './pages/sent/SentList';
@@ -59,8 +62,21 @@ function parseRoute(pathname: string): Route {
 
 export function Root({ manifest }: RootProps) {
   const apiBase = manifest?.baseUrl || '';
+  const authHeaders = useAuthHeaders();
+  const headersRef = useRef(authHeaders);
+  headersRef.current = authHeaders;
+
   const [daisyTheme, setDaisyTheme] = useState(getShellTheme);
   const [pathname, setPathname] = useState(window.location.pathname);
+  const [mailboxes, setMailboxes] = useState<Mailbox[]>([]);
+  const [selectedMailboxId, setSelectedMailboxId] = useState<string | undefined>();
+
+  // Fetch mailboxes once on mount
+  useEffect(() => {
+    api.listMailboxes(apiBase, headersRef.current)
+      .then(({ mailboxes: list }) => setMailboxes(list))
+      .catch(() => { /* settings page handles errors */ });
+  }, [apiBase]);
 
   // Sync theme with shell
   useEffect(() => {
@@ -98,22 +114,22 @@ export function Root({ manifest }: RootProps) {
             />
           );
         }
-        return <InboxList apiBase={apiBase} onNavigate={navigate} />;
+        return <InboxList apiBase={apiBase} onNavigate={navigate} mailboxId={selectedMailboxId} />;
       case 'sent':
-        return <SentList apiBase={apiBase} onNavigate={navigate} />;
+        return <SentList apiBase={apiBase} onNavigate={navigate} mailboxId={selectedMailboxId} />;
       case 'templates':
-        return <TemplateList />;
+        return <TemplateList apiBase={apiBase} />;
       case 'settings':
         return <MailboxSettings apiBase={apiBase} />;
       default:
-        return <InboxList apiBase={apiBase} onNavigate={navigate} />;
+        return <InboxList apiBase={apiBase} onNavigate={navigate} mailboxId={selectedMailboxId} />;
     }
   };
 
   return (
     <div
       data-theme={daisyTheme}
-      className="font-sans flex flex-col overflow-hidden"
+      className="font-sans flex flex-col overflow-hidden bg-base-100 text-base-content"
       style={{ height: 'calc(100dvh - var(--layout-topbar-height, 56px) - 48px)' }}
     >
       {/* Standalone mode: show inline nav tabs */}
@@ -137,6 +153,27 @@ export function Root({ manifest }: RootProps) {
               {s.label}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Mailbox filter — shown when multiple mailboxes are connected */}
+      {mailboxes.length > 1 && (route.section === 'inbox' || route.section === 'sent') && (
+        <div className="flex-shrink-0 px-4 sm:px-6 pt-2 pb-1">
+          <div className="relative inline-block">
+            <select
+              className="select select-bordered select-xs pr-8 min-w-[180px]"
+              value={selectedMailboxId ?? ''}
+              onChange={(e) => setSelectedMailboxId(e.target.value || undefined)}
+            >
+              <option value="">All mailboxes</option>
+              {mailboxes.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.emailAddress}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-base-content/40" />
+          </div>
         </div>
       )}
 

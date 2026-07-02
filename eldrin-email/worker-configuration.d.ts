@@ -7,4 +7,9 @@ interface Env {
   /** Google OAuth 2.0 credentials */
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
+  /** Microsoft / Outlook OAuth 2.0 credentials */
+  MICROSOFT_CLIENT_ID: string;
+  MICROSOFT_CLIENT_SECRET: string;
+  /** Eldrin Core platform URL for event emission */
+  ELDRIN_CORE_URL?: string;
 }

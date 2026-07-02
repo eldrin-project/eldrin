@@ -7,12 +7,12 @@
 
 import { Hono } from 'hono';
 import { eq, and, desc, asc, like, or, sql, inArray } from 'drizzle-orm';
-import { connectedMailboxes, emailThreads, emails, type Database } from '../db';
+import { connectedMailboxes, emailThreads, emails, emailTracking, type Database } from '../db';
 import { generateId, now } from '../utils';
 import { fetchThreadBodies } from '../services/body-fetch';
-import { decryptToken } from '../services/crypto';
-import { refreshGmailToken } from '../services/oauth-gmail';
-import { sendMessage } from '../services/gmail-client';
+import { getProvider, getAccessToken } from '../services/providers';
+import { prepareTrackedEmail } from '../services/tracking';
+import { emitEmailSent } from '../services/event-emitter';
 
 type Variables = { db: Database; userId: string };
 
@@ -28,6 +28,12 @@ async function getUserMailboxIds(db: Database, userId: string): Promise<string[]
   return mailboxes.map((m) => m.id);
 }
 
+/** Narrow mailbox list to a single ID if the filter param is present and valid. */
+function filterMailboxIds(allIds: string[], filterMailboxId?: string): string[] {
+  if (!filterMailboxId) return allIds;
+  return allIds.includes(filterMailboxId) ? [filterMailboxId] : [];
+}
+
 // ── GET /api/inbox — list email threads ──────────────────────────────────────
 
 emailRoutes.get('/api/inbox', async (c) => {
@@ -35,7 +41,8 @@ emailRoutes.get('/api/inbox', async (c) => {
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const db = c.get('db');
-  const mailboxIds = await getUserMailboxIds(db, userId);
+  const allMailboxIds = await getUserMailboxIds(db, userId);
+  const mailboxIds = filterMailboxIds(allMailboxIds, c.req.query('mailboxId') || undefined);
   if (mailboxIds.length === 0) {
     return c.json({ data: [], pagination: { page: 1, limit: 25, total: 0, pages: 0 } });
   }
@@ -231,7 +238,8 @@ emailRoutes.get('/api/sent', async (c) => {
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const db = c.get('db');
-  const mailboxIds = await getUserMailboxIds(db, userId);
+  const allMailboxIds = await getUserMailboxIds(db, userId);
+  const mailboxIds = filterMailboxIds(allMailboxIds, c.req.query('mailboxId') || undefined);
   if (mailboxIds.length === 0) {
     return c.json({ data: [], pagination: { page: 1, limit: 25, total: 0, pages: 0 } });
   }
@@ -265,7 +273,11 @@ emailRoutes.get('/api/sent', async (c) => {
       snippet: emails.snippet,
       sentAt: emails.sentAt,
       receivedAt: emails.receivedAt,
+      openCount: emailTracking.openCount,
+      clickCount: emailTracking.clickCount,
+      firstOpenedAt: emailTracking.firstOpenedAt,
     }).from(emails)
+      .leftJoin(emailTracking, eq(emails.id, emailTracking.emailId))
       .where(where)
       .orderBy(desc(emails.receivedAt))
       .limit(limit)
@@ -282,6 +294,9 @@ emailRoutes.get('/api/sent', async (c) => {
     subject: e.subject,
     snippet: e.snippet,
     sentAt: e.sentAt ?? e.receivedAt,
+    openCount: e.openCount ?? 0,
+    clickCount: e.clickCount ?? 0,
+    firstOpenedAt: e.firstOpenedAt ?? null,
   }));
 
   return c.json({
@@ -297,7 +312,8 @@ emailRoutes.get('/api/email/search', async (c) => {
   if (!userId) return c.json({ error: 'Unauthorized' }, 401);
 
   const db = c.get('db');
-  const mailboxIds = await getUserMailboxIds(db, userId);
+  const allMailboxIds = await getUserMailboxIds(db, userId);
+  const mailboxIds = filterMailboxIds(allMailboxIds, c.req.query('mailboxId') || undefined);
   if (mailboxIds.length === 0) {
     return c.json({ data: [], pagination: { page: 1, limit: 25, total: 0, pages: 0 } });
   }
@@ -362,6 +378,8 @@ emailRoutes.post('/api/email/send', async (c) => {
     inReplyTo?: string;
     threadId?: string;
     scheduledAt?: number;
+    relatedApp?: string;
+    relatedRecordId?: string;
   };
 
   // Validate required fields
@@ -436,45 +454,36 @@ emailRoutes.post('/api/email/send', async (c) => {
       isRead: true,
       status: 'scheduled',
       scheduledAt: body.scheduledAt,
+      relatedApp: body.relatedApp ?? null,
+      relatedRecordId: body.relatedRecordId ?? null,
       createdAt: timestamp,
     });
 
     return c.json({ id: emailId, status: 'scheduled', scheduledAt: body.scheduledAt });
   }
 
-  // Send immediately via Gmail API
-  let accessToken = await decryptToken(mailbox.accessTokenEncrypted, c.env.JWT_SECRET);
+  // Send immediately via provider
+  const provider = getProvider(mailbox.provider);
+  const accessToken = await getAccessToken(db, mailbox, c.env, provider);
 
-  // Refresh if expired
-  if (mailbox.tokenExpiresAt <= timestamp) {
-    const refreshToken = await decryptToken(mailbox.refreshTokenEncrypted, c.env.JWT_SECRET);
-    const refreshed = await refreshGmailToken(
-      refreshToken,
-      c.env.GOOGLE_CLIENT_ID,
-      c.env.GOOGLE_CLIENT_SECRET,
-    );
-    accessToken = refreshed.accessToken;
+  // Inject tracking pixel and link wrapping
+  const baseUrl = new URL(c.req.url).origin;
+  let sendHtml = body.bodyHtml;
 
-    const newEncrypted = await (await import('../services/crypto')).encryptToken(
-      refreshed.accessToken,
-      c.env.JWT_SECRET,
-    );
-    await db.update(connectedMailboxes)
-      .set({
-        accessTokenEncrypted: newEncrypted,
-        tokenExpiresAt: timestamp + refreshed.expiresIn * 1000,
-        updatedAt: timestamp,
-      })
-      .where(eq(connectedMailboxes.id, mailbox.id));
+  try {
+    const tracked = await prepareTrackedEmail(db, body.bodyHtml, emailId, baseUrl);
+    sendHtml = tracked.html;
+  } catch {
+    // Tracking injection failed — send without tracking
   }
 
-  const gmailResult = await sendMessage(accessToken, {
+  const sendResult = await provider.sendMessage(accessToken, {
     from: mailbox.emailAddress,
     to: body.to,
     cc: body.cc,
     bcc: body.bcc,
     subject: body.subject,
-    bodyHtml: body.bodyHtml,
+    bodyHtml: sendHtml,
     bodyText: body.bodyText,
     inReplyTo: body.inReplyTo,
     threadId: providerThreadId,
@@ -486,7 +495,7 @@ emailRoutes.post('/api/email/send', async (c) => {
     await db.insert(emailThreads).values({
       id: localThreadId,
       mailboxId: mailbox.id,
-      providerThreadId: gmailResult.threadId,
+      providerThreadId: sendResult.threadId,
       subject: body.subject,
       lastMessageAt: timestamp,
       messageCount: 1,
@@ -509,8 +518,8 @@ emailRoutes.post('/api/email/send', async (c) => {
     id: emailId,
     threadId: localThreadId,
     mailboxId: mailbox.id,
-    providerMessageId: gmailResult.id,
-    messageId: `<${gmailResult.id}@gmail.com>`,
+    providerMessageId: sendResult.id,
+    messageId: `<${sendResult.id}@${mailbox.provider}.provider>`,
     inReplyTo: body.inReplyTo ?? null,
     fromAddress: mailbox.emailAddress,
     fromName: mailbox.displayName,
@@ -528,8 +537,22 @@ emailRoutes.post('/api/email/send', async (c) => {
     labels: JSON.stringify(['SENT']),
     isRead: true,
     status: 'sent',
+    relatedApp: body.relatedApp ?? null,
+    relatedRecordId: body.relatedRecordId ?? null,
     createdAt: timestamp,
   });
+
+  // Emit email.sent event (fire-and-forget via waitUntil)
+  c.executionCtx.waitUntil(
+    emitEmailSent(c.env, {
+      messageId: `<${sendResult.id}@${mailbox.provider}.provider>`,
+      from: mailbox.emailAddress,
+      to: body.to,
+      subject: body.subject,
+      relatedApp: body.relatedApp,
+      relatedRecordId: body.relatedRecordId,
+    }),
+  );
 
   return c.json({ id: emailId, status: 'sent', threadId: localThreadId });
 });

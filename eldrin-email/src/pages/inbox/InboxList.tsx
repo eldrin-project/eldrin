@@ -17,6 +17,7 @@ import { ComposeModal } from '../compose/ComposeModal';
 interface InboxListProps {
   apiBase: string;
   onNavigate: (path: string) => void;
+  mailboxId?: string;
 }
 
 function formatDate(timestamp: number): string {
@@ -49,7 +50,7 @@ function senderDisplay(name: string | null, address: string): string {
   return name || address.split('@')[0];
 }
 
-export function InboxList({ apiBase, onNavigate }: InboxListProps) {
+export function InboxList({ apiBase, onNavigate, mailboxId }: InboxListProps) {
   const authHeaders = useAuthHeaders();
   const headersRef = useRef(authHeaders);
   headersRef.current = authHeaders;
@@ -77,6 +78,7 @@ export function InboxList({ apiBase, onNavigate }: InboxListProps) {
           limit: 25,
           search: search || undefined,
           unread: unreadOnly || undefined,
+          mailboxId,
         });
         setThreads(result.data);
         setPagination(result.pagination);
@@ -86,7 +88,7 @@ export function InboxList({ apiBase, onNavigate }: InboxListProps) {
         setLoading(false);
       }
     },
-    [apiBase, search, unreadOnly],
+    [apiBase, search, unreadOnly, mailboxId],
   );
 
   useEffect(() => {

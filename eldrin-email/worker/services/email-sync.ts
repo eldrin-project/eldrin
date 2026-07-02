@@ -1,8 +1,11 @@
 /**
  * Email sync engine.
  *
- * Fetches new emails from connected Gmail accounts, deduplicates by Message-ID,
- * stores them in D1, and updates the sync cursor for incremental sync.
+ * Fetches new emails from connected accounts (Gmail, Outlook, etc.),
+ * deduplicates by Message-ID, stores them in D1, and updates the sync cursor.
+ *
+ * Provider-agnostic: uses the EmailProvider interface so sync logic
+ * is identical regardless of the email service.
  *
  * Respects mailbox sync_depth:
  * - full: store everything including body
@@ -14,18 +17,9 @@ import { eq, and } from 'drizzle-orm';
 import type { Database } from '../db';
 import { connectedMailboxes, emailThreads, emails } from '../db/schema';
 import { generateId, now } from '../utils';
-import { decryptToken, encryptToken } from './crypto';
-import { refreshGmailToken } from './oauth-gmail';
-import {
-  listMessages,
-  listHistory,
-  getMessage,
-  getProfile,
-  parseGmailMessage,
-  GmailApiError,
-  type ParsedEmail,
-  type GmailMessageRef,
-} from './gmail-client';
+import { getProvider, getAccessToken, ProviderApiError } from './providers';
+import type { MessageRef, ParsedEmail } from './providers';
+import { emitEmailReceived, type EmailReceivedPayload } from './event-emitter';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,47 +39,6 @@ export interface SyncResult {
 
 const DEFAULT_SYNC_DAYS = 30;
 const FIRST_SYNC_MAX_MESSAGES = 500;
-
-// ── Token management ─────────────────────────────────────────────────────────
-
-/**
- * Get a valid access token — decrypts and refreshes if expired.
- * Updates the DB with new encrypted access token if refreshed.
- */
-async function getAccessToken(
-  db: Database,
-  mailbox: MailboxRow,
-  env: Env,
-): Promise<string> {
-  const accessToken = await decryptToken(mailbox.accessTokenEncrypted, env.JWT_SECRET);
-
-  // If token hasn't expired yet, use it directly
-  if (mailbox.tokenExpiresAt > now()) {
-    return accessToken;
-  }
-
-  // Refresh the token
-  const refreshToken = await decryptToken(mailbox.refreshTokenEncrypted, env.JWT_SECRET);
-  const refreshed = await refreshGmailToken(
-    refreshToken,
-    env.GOOGLE_CLIENT_ID,
-    env.GOOGLE_CLIENT_SECRET,
-  );
-
-  // Store the new encrypted access token
-  const newEncrypted = await encryptToken(refreshed.accessToken, env.JWT_SECRET);
-  const timestamp = now();
-
-  await db.update(connectedMailboxes)
-    .set({
-      accessTokenEncrypted: newEncrypted,
-      tokenExpiresAt: timestamp + refreshed.expiresIn * 1000,
-      updatedAt: timestamp,
-    })
-    .where(eq(connectedMailboxes.id, mailbox.id));
-
-  return refreshed.accessToken;
-}
 
 // ── Thread management ────────────────────────────────────────────────────────
 
@@ -195,67 +148,6 @@ async function insertEmail(
 // ── Core sync logic ──────────────────────────────────────────────────────────
 
 /**
- * Collect message refs for first sync.
- * syncDays=0 means no date filter (fetch all, up to max messages).
- */
-async function collectFirstSyncRefs(
-  accessToken: string,
-  syncDays: number,
-): Promise<GmailMessageRef[]> {
-  let query = '';
-  if (syncDays > 0) {
-    const since = new Date(Date.now() - syncDays * 24 * 60 * 60 * 1000);
-    query = `after:${since.getFullYear()}/${since.getMonth() + 1}/${since.getDate()}`;
-  }
-
-  const refs: GmailMessageRef[] = [];
-  let pageToken: string | undefined;
-
-  do {
-    const response = await listMessages(accessToken, query, 100, pageToken);
-    if (response.messages) {
-      refs.push(...response.messages);
-    }
-    pageToken = response.nextPageToken;
-  } while (pageToken && refs.length < FIRST_SYNC_MAX_MESSAGES);
-
-  return refs.slice(0, FIRST_SYNC_MAX_MESSAGES);
-}
-
-/**
- * Collect message refs for incremental sync (since last historyId).
- */
-async function collectIncrementalRefs(
-  accessToken: string,
-  historyId: string,
-): Promise<{ refs: GmailMessageRef[]; cursorInvalid: boolean }> {
-  const refs: GmailMessageRef[] = [];
-  let pageToken: string | undefined;
-
-  try {
-    do {
-      const response = await listHistory(accessToken, historyId, pageToken);
-      if (response.history) {
-        for (const entry of response.history) {
-          if (entry.messagesAdded) {
-            refs.push(...entry.messagesAdded.map((a) => a.message));
-          }
-        }
-      }
-      pageToken = response.nextPageToken;
-    } while (pageToken);
-  } catch (err) {
-    // historyId expired or invalid — fall back to full sync
-    if (err instanceof GmailApiError && (err.status === 404 || err.status === 410)) {
-      return { refs: [], cursorInvalid: true };
-    }
-    throw err;
-  }
-
-  return { refs, cursorInvalid: false };
-}
-
-/**
  * Sync a single mailbox.
  */
 export async function syncMailbox(
@@ -274,39 +166,42 @@ export async function syncMailbox(
   };
 
   try {
-    const accessToken = await getAccessToken(db, mailbox, env);
+    const provider = getProvider(mailbox.provider);
+    const accessToken = await getAccessToken(db, mailbox, env, provider);
     const syncDepth = mailbox.syncDepth as 'full' | 'metadata' | 'thread_only';
     const syncDays = mailbox.syncDays ?? DEFAULT_SYNC_DAYS;
 
     // Determine which messages to fetch
-    let messageRefs: GmailMessageRef[];
+    let messageRefs: MessageRef[];
 
     if (mailbox.syncCursor) {
       // Incremental sync
-      const { refs, cursorInvalid } = await collectIncrementalRefs(
+      const { refs, cursorInvalid } = await provider.collectIncrementalRefs(
         accessToken,
         mailbox.syncCursor,
       );
       if (cursorInvalid) {
         // Cursor expired — fall back to first sync
         console.log(`[email] Cursor invalid for ${mailbox.emailAddress}, doing full sync`);
-        messageRefs = await collectFirstSyncRefs(accessToken, syncDays);
+        messageRefs = await provider.collectFirstSyncRefs(accessToken, syncDays, FIRST_SYNC_MAX_MESSAGES);
       } else {
         messageRefs = refs;
       }
     } else {
       // First sync
-      messageRefs = await collectFirstSyncRefs(accessToken, syncDays);
+      messageRefs = await provider.collectFirstSyncRefs(accessToken, syncDays, FIRST_SYNC_MAX_MESSAGES);
     }
 
     // Determine the format for getMessage based on sync depth
     const format = syncDepth === 'full' ? 'full' as const : 'metadata' as const;
 
+    // Collect new inbound emails for event emission
+    const newInboundEmails: EmailReceivedPayload[] = [];
+
     // Process each message
     for (const ref of messageRefs) {
       try {
-        const raw = await getMessage(accessToken, ref.id, format);
-        const parsed = parseGmailMessage(raw);
+        const parsed = await provider.getMessage(accessToken, ref.id, format);
         result.messagesProcessed++;
 
         const direction = determineDirection(parsed, mailbox.emailAddress);
@@ -332,28 +227,54 @@ export async function syncMailbox(
           const includeBody = syncDepth === 'full';
           await insertEmail(db, threadId, mailbox.id, parsed, direction, includeBody);
           result.emailsInserted++;
+
+          // Track new inbound emails for event emission
+          if (direction === 'inbound') {
+            newInboundEmails.push({
+              messageId: parsed.messageId,
+              threadId,
+              from: parsed.fromAddress,
+              to: parsed.toAddresses,
+              subject: parsed.subject,
+              snippet: parsed.snippet,
+              receivedAt: parsed.receivedAt,
+            });
+          }
         }
       } catch (err) {
+        // 404 = message deleted/trashed between list and get — normal, skip silently
+        if (err instanceof ProviderApiError && err.status === 404) {
+          result.skippedDuplicates++;
+          continue;
+        }
+
         const msg = err instanceof Error ? err.message : String(err);
         result.errors.push(`Message ${ref.id}: ${msg}`);
 
         // On rate limit, stop processing
-        if (err instanceof GmailApiError && err.status === 429) {
-          result.errors.push('Rate limited by Gmail API, stopping sync');
+        if (err instanceof ProviderApiError && err.status === 429) {
+          result.errors.push('Rate limited by provider API, stopping sync');
           break;
         }
       }
     }
 
-    // Get the latest historyId for the cursor
-    const profile = await getProfile(accessToken);
+    // Emit email.received events for new inbound emails (fire-and-forget)
+    if (newInboundEmails.length > 0) {
+      Promise.allSettled(
+        newInboundEmails.map((payload) => emitEmailReceived(env, payload)),
+      ).catch(() => {});
+    }
+
+    // Get the latest sync cursor
+    const newCursor = await provider.getSyncCursor(accessToken);
     const timestamp = now();
 
     // Update mailbox sync state
     await db.update(connectedMailboxes)
       .set({
         lastSyncAt: timestamp,
-        syncCursor: profile.historyId,
+        syncCursor: newCursor,
         syncStatus: result.errors.length > 0 ? 'error' : 'active',
         errorMessage: result.errors.length > 0
           ? result.errors.slice(0, 3).join('; ')
