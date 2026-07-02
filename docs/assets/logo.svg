@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 290" width="240" height="290">
+  <!-- Connection lines (center → peripheral nodes) -->
+  <line x1="120" y1="118" x2="95" y2="80" stroke="#9EAFC0" stroke-width="2"/>
+  <line x1="120" y1="118" x2="148" y2="72" stroke="#1A5E6E" stroke-width="2"/>
+  <line x1="120" y1="118" x2="180" y2="115" stroke="#BFD0DA" stroke-width="2"/>
+  <line x1="120" y1="118" x2="148" y2="152" stroke="#168585" stroke-width="2"/>
+  <line x1="120" y1="118" x2="115" y2="176" stroke="#2B2F58" stroke-width="2"/>
+  <line x1="120" y1="118" x2="94" y2="150" stroke="#2B2F58" stroke-width="2"/>
+  <line x1="120" y1="118" x2="72" y2="115" stroke="#2B2F58" stroke-width="2"/>
+
+  <!-- Sub-node lines (peripheral → satellite) -->
+  <line x1="95" y1="80" x2="78" y2="62" stroke="#CFD8E0" stroke-width="1.5"/>
+  <line x1="72" y1="115" x2="48" y2="115" stroke="#3A4168" stroke-width="1.5"/>
+
+  <!-- Center node (dark teal) -->
+  <rect x="113" y="111" width="14" height="14" rx="3" fill="#1A5E6E"/>
+
+  <!-- N1: Upper-left (light gray-blue) -->
+  <rect x="90" y="75" width="10" height="10" rx="2" fill="#9EAFC0"/>
+
+  <!-- N2: Upper-right (dark teal) -->
+  <rect x="142" y="66" width="12" height="12" rx="2.5" fill="#1A5E6E"/>
+
+  <!-- N3: Right (very pale blue) -->
+  <rect x="176" y="111" width="8" height="8" rx="2" fill="#BFD0DA"/>
+
+  <!-- N4: Lower-right (teal/cyan) -->
+  <rect x="143" y="147" width="10" height="10" rx="2" fill="#168585"/>
+
+  <!-- N5: Bottom (dark navy) -->
+  <rect x="110" y="171" width="10" height="10" rx="2" fill="#2B2F58"/>
+
+  <!-- N6: Lower-left (dark navy, small) -->
+  <rect x="90" y="146" width="8" height="8" rx="2" fill="#2B2F58"/>
+
+  <!-- N7: Left (dark navy) -->
+  <rect x="66" y="109" width="12" height="12" rx="2.5" fill="#2B2F58"/>
+
+  <!-- S1: Satellite off N1 (pale) -->
+  <rect x="75" y="59" width="6" height="6" rx="1.5" fill="#CFD8E0"/>
+
+  <!-- S2: Satellite off N7 (navy) -->
+  <rect x="44" y="111" width="8" height="8" rx="2" fill="#3A4168"/>
+
+  <!-- ELDRIN text -->
+  <text x="120" y="248" text-anchor="middle"
+        font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-weight="300" font-size="24" letter-spacing="8"
+        fill="#1C2640">ELDRIN</text>
+</svg>
