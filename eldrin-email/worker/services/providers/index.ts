@@ -76,7 +76,24 @@ export async function getAccessToken(
   // Refresh the token
   const refreshToken = await decryptToken(mailbox.refreshTokenEncrypted, env.JWT_SECRET);
   const { clientId, clientSecret } = getOAuthConfig(env, mailbox.provider);
-  const refreshed = await provider.refreshAccessToken(refreshToken, clientId, clientSecret);
+  let refreshed;
+  try {
+    refreshed = await provider.refreshAccessToken(refreshToken, clientId, clientSecret);
+  } catch (error) {
+    // A revoked/expired grant is permanent — flag the mailbox so senders
+    // and the first-active-mailbox fallback skip it until reconnected.
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes('invalid_grant')) {
+      await db.update(connectedMailboxes)
+        .set({
+          syncStatus: 'error',
+          errorMessage: 'Authorization expired or revoked — reconnect this mailbox',
+          updatedAt: now(),
+        })
+        .where(eq(connectedMailboxes.id, mailbox.id));
+    }
+    throw error;
+  }
 
   // Store the new encrypted access token
   const newEncrypted = await encryptToken(refreshed.accessToken, env.JWT_SECRET);
