@@ -73,15 +73,15 @@ eldrin-email/
 
 ```
 ┌─────────────┐    email.received    ┌──────────────┐
-│ eldrin-email │ ──────────────────→  │  eldrin-core  │ (platform event bus)
-│   (sync)    │    email.sent        │  POST /emit   │
+│ eldrin-email│ ──────────────────→  │  eldrin-core │ (platform event bus)
+│   (sync)    │    email.sent        │  POST /emit  │
 └─────────────┘ ──────────────────→  └──────┬───────┘
                                             │ push delivery
                                             ▼
                                      ┌──────────────┐
-                                     │  eldrin-crm   │
-                                     │ /api/_events/ │
-                                     │   webhook     │
+                                     │  eldrin-crm  │
+                                     │ /api/_events/│
+                                     │   webhook    │
                                      └──────┬───────┘
                                             │
                                      Match sender email
@@ -95,13 +95,13 @@ eldrin-email/
 
 ```
 ┌──────────────┐  POST /api/app/eldrin-email/api/email/send   ┌─────────────┐
-│  eldrin-crm   │ ──────────────────────────────────────────→  │ eldrin-email │
-│ (contact      │  { to, subject, body, relatedApp,            │ (send via    │
-│  detail page) │    relatedRecordId, templateId? }            │  Gmail API)  │
-└──────────────┘                                               └──────┬──────┘
-                                                                      │
+│  eldrin-crm   │ ──────────────────────────────────────────→ │ eldrin-email│
+│ (contact      │  { to, subject, body, relatedApp,           │ (send via   │
+│  detail page) │    relatedRecordId, templateId? }           │  Gmail API) │
+└──────────────┘                                              └──────┬──────┘
+                                                                     │
                                                                email.sent event
-                                                                      │
+                                                                     │
                                                                CRM logs activity
 ```
 

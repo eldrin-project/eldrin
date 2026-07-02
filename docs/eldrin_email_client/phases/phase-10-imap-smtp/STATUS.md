@@ -1,6 +1,6 @@
 # Phase 10: IMAP/SMTP Support
 
-## Status: not_started
+## Status: skipped
 ## Started: -
 ## Completed: -
 
@@ -11,5 +11,8 @@
 - [ ] Step 10.4: Handle runtime limitations
 
 ## Notes:
-This is a "Could" priority phase. Defer unless there is demand.
-Cloudflare Workers lack raw TCP sockets — IMAP/SMTP may only work on Node.js/Bun deployments.
+Skipped — Cloudflare Workers does not reliably support TCP sockets needed for IMAP/SMTP.
+
+The `nodejs_compat` polyfills provide `node:net`/`node:tls` but they're backed by Workers' `connect()` API, which has different semantics than Node.js `net.Socket`. IMAP libraries like `imapflow` are unlikely to work. Additionally, Workers' 30s execution time limit is insufficient for syncing many messages over IMAP.
+
+This was a "Could" priority. Revisit if the primary deployment target moves to Node.js/Bun (standalone/container), where full TCP socket support is available.
