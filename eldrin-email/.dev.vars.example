@@ -1,0 +1,20 @@
+# Local development secrets for eldrin-email (Wrangler .dev.vars format)
+# Copy this file to .dev.vars and fill in real values.
+# NEVER commit .dev.vars — it is gitignored.
+# See private/SETUP.md for how to obtain each credential.
+
+# Google OAuth 2.0 (Gmail integration)
+# Source: Google Cloud Console -> APIs & Services -> Credentials (Web application client)
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Microsoft OAuth 2.0 (Outlook integration)
+# Source: Microsoft Entra admin center -> App registrations -> your app
+MICROSOFT_CLIENT_ID=your-microsoft-application-client-id
+MICROSOFT_CLIENT_SECRET=your-microsoft-client-secret-value
+
+# JWT secret used for auth token verification and OAuth token encryption (AES-GCM key via HKDF).
+# IMPORTANT: must be IDENTICAL across the .dev.vars of eldrin-core, eldrin-crm,
+# eldrin-email and eldrin-workflows (and match the binary's secret in ~/.eldrin/.env),
+# otherwise cross-app tokens will not verify.
+JWT_SECRET=your-shared-jwt-secret

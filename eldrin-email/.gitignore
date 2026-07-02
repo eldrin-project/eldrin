@@ -21,6 +21,8 @@ worker/migrations.generated.ts
 # Wrangler
 .wrangler
 .dev.vars*
+!.dev.vars.example
 .env*
 
-private/*
+# Never commit credentials/setup notes
+private/
