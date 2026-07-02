@@ -13,8 +13,8 @@
     "core": ">=0.1.0"
   },
   "permissions": [
-    { "resource": "mailboxes", "actions": ["read", "create", "delete"] },
-    { "resource": "emails", "actions": ["read", "send"] },
+    { "resource": "mailboxes", "actions": ["read", "create", "update", "delete"] },
+    { "resource": "emails", "actions": ["read", "send", "update"] },
     { "resource": "templates", "actions": ["read", "create", "update", "delete"] },
     { "resource": "tracking", "actions": ["read"] }
   ],
@@ -30,8 +30,8 @@
       "name": "User",
       "description": "Send and receive email, manage own mailbox and templates",
       "permissions": [
-        "mailboxes:read", "mailboxes:create", "mailboxes:delete",
-        "emails:read", "emails:send",
+        "mailboxes:read", "mailboxes:create", "mailboxes:update", "mailboxes:delete",
+        "emails:read", "emails:send", "emails:update",
         "templates:read", "templates:create", "templates:update", "templates:delete",
         "tracking:read"
       ]
@@ -51,25 +51,35 @@
     "defaultPolicy": "deny",
     "publicRoutes": [
       "/health",
-      "/api/track/:trackingId/pixel.gif",
-      "/api/track/:trackingId/click"
+      "/track/*",
+      "/mailbox/connect/*",
+      "/mailbox/callback/*",
+      "/_events/webhook"
     ],
     "routes": [
+      { "method": "POST", "path": "/api/mailbox/connect-token", "permission": "mailboxes:create" },
       { "method": "GET", "path": "/api/mailboxes", "permission": "mailboxes:read" },
-      { "method": "POST", "path": "/api/mailboxes/connect", "permission": "mailboxes:create" },
+      { "method": "PATCH", "path": "/api/mailboxes/:id", "permission": "mailboxes:update" },
       { "method": "DELETE", "path": "/api/mailboxes/:id", "permission": "mailboxes:delete" },
+      { "method": "POST", "path": "/api/mailboxes/:id/pause", "permission": "mailboxes:update" },
+      { "method": "POST", "path": "/api/mailboxes/:id/resume", "permission": "mailboxes:update" },
       { "method": "POST", "path": "/api/mailboxes/:id/sync", "permission": "mailboxes:read" },
-      { "method": "GET", "path": "/api/threads", "permission": "emails:read" },
-      { "method": "GET", "path": "/api/threads/:id", "permission": "emails:read" },
-      { "method": "GET", "path": "/api/emails", "permission": "emails:read" },
-      { "method": "GET", "path": "/api/emails/:id", "permission": "emails:read" },
+      { "method": "GET", "path": "/api/inbox", "permission": "emails:read" },
+      { "method": "GET", "path": "/api/inbox/:threadId", "permission": "emails:read" },
+      { "method": "PATCH", "path": "/api/inbox/:threadId", "permission": "emails:update" },
+      { "method": "GET", "path": "/api/sent", "permission": "emails:read" },
+      { "method": "GET", "path": "/api/email/search", "permission": "emails:read" },
       { "method": "POST", "path": "/api/email/send", "permission": "emails:send" },
       { "method": "POST", "path": "/api/email/send-template", "permission": "emails:send" },
       { "method": "GET", "path": "/api/email/history", "permission": "emails:read" },
+      { "method": "GET", "path": "/api/email/history/record", "permission": "emails:read" },
       { "method": "GET", "path": "/api/templates", "permission": "templates:read" },
+      { "method": "GET", "path": "/api/templates/:id", "permission": "templates:read" },
       { "method": "POST", "path": "/api/templates", "permission": "templates:create" },
-      { "method": "PUT", "path": "/api/templates/:id", "permission": "templates:update" },
-      { "method": "DELETE", "path": "/api/templates/:id", "permission": "templates:delete" }
+      { "method": "PATCH", "path": "/api/templates/:id", "permission": "templates:update" },
+      { "method": "DELETE", "path": "/api/templates/:id", "permission": "templates:delete" },
+      { "method": "POST", "path": "/api/templates/:id/preview", "permission": "templates:read" },
+      { "method": "POST", "path": "/api/templates/:id/use", "permission": "templates:read" }
     ]
   },
   "database": {
