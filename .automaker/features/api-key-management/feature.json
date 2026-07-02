@@ -2,11 +2,33 @@
   "id": "api-key-management",
   "category": "Core",
   "title": "API Key Management",
-  "description": "Create API key generation and management system for programmatic access with scoped permissions, expiration, and usage analytics.",
+  "description": "Create API Key Management System with Scoped Permissions and Analytics\n\nImplement a complete API key generation and management system that enables users to create, manage, and monitor programmatic access to the platform through API keys with granular permission controls.\n\nRequirements:\n\nAPI Key Generation:\n- Generate cryptographically secure API keys with unique identifiers\n- Display the full key only once at creation time with clear warning\n- Store only hashed versions of keys in the database\n- Support multiple keys per user/organization\n- Allow users to name/label keys for identification purposes\n\nPermission Scoping:\n- Define granular permission scopes (read, write, delete) per resource type\n- Allow users to select specific scopes when creating keys\n- Enforce scope-based access control on all API endpoints\n- Support role-based templates for common permission sets\n- Validate requests against key permissions before processing\n\nExpiration Management:\n- Allow users to set optional expiration dates for keys\n- Implement automatic key deactivation upon expiration\n- Send notifications before keys expire (e.g., 7 days, 1 day)\n- Support both date-based and time-to-live expiration options\n- Provide renewal workflow for expiring keys\n\nUsage Analytics:\n- Track API requests per key (timestamp, endpoint, response status)\n- Display usage metrics dashboard (total requests, success rate, rate limit status)\n- Show last used timestamp for each key\n- Provide usage graphs and trends over time\n- Support filtering and exporting usage data\n\nKey Management Interface:\n- List all active and expired keys with metadata\n- Enable/disable keys without deletion\n- Revoke keys immediately with confirmation\n- Rotate keys while maintaining access continuity\n- Search and filter keys by name, status, or creation date\n\nSecurity Considerations:\n- Implement rate limiting per API key\n- Log all key operations (creation, revocation, usage)\n- Detect and alert on suspicious usage patterns\n- Support IP whitelisting for keys (optional)\n- Ensure keys are transmitted only over HTTPS\n\nEdge Cases:\n- Handle concurrent requests with same key\n- Manage key conflicts during rotation\n- Address timezone issues for expiration\n- Handle deleted users with active keys\n- Support bulk key operations for administrators",
   "status": "backlog",
   "priority": 2,
   "complexity": "moderate",
   "dependencies": [],
   "createdAt": "2026-01-17T05:35:03.935Z",
-  "updatedAt": "2026-01-17T05:35:03.935Z"
+  "updatedAt": "2026-01-17T05:35:03.935Z",
+  "skipTests": false,
+  "model": "opus",
+  "thinkingLevel": "none",
+  "reasoningEffort": "none",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "planningMode": "skip",
+  "requirePlanApproval": false,
+  "workMode": "current",
+  "descriptionHistory": [
+    {
+      "description": "Create API key generation and management system for programmatic access with scoped permissions, expiration, and usage analytics.",
+      "timestamp": "2026-01-17T07:29:08.690Z",
+      "source": "initial"
+    },
+    {
+      "description": "Create API Key Management System with Scoped Permissions and Analytics\n\nImplement a complete API key generation and management system that enables users to create, manage, and monitor programmatic access to the platform through API keys with granular permission controls.\n\nRequirements:\n\nAPI Key Generation:\n- Generate cryptographically secure API keys with unique identifiers\n- Display the full key only once at creation time with clear warning\n- Store only hashed versions of keys in the database\n- Support multiple keys per user/organization\n- Allow users to name/label keys for identification purposes\n\nPermission Scoping:\n- Define granular permission scopes (read, write, delete) per resource type\n- Allow users to select specific scopes when creating keys\n- Enforce scope-based access control on all API endpoints\n- Support role-based templates for common permission sets\n- Validate requests against key permissions before processing\n\nExpiration Management:\n- Allow users to set optional expiration dates for keys\n- Implement automatic key deactivation upon expiration\n- Send notifications before keys expire (e.g., 7 days, 1 day)\n- Support both date-based and time-to-live expiration options\n- Provide renewal workflow for expiring keys\n\nUsage Analytics:\n- Track API requests per key (timestamp, endpoint, response status)\n- Display usage metrics dashboard (total requests, success rate, rate limit status)\n- Show last used timestamp for each key\n- Provide usage graphs and trends over time\n- Support filtering and exporting usage data\n\nKey Management Interface:\n- List all active and expired keys with metadata\n- Enable/disable keys without deletion\n- Revoke keys immediately with confirmation\n- Rotate keys while maintaining access continuity\n- Search and filter keys by name, status, or creation date\n\nSecurity Considerations:\n- Implement rate limiting per API key\n- Log all key operations (creation, revocation, usage)\n- Detect and alert on suspicious usage patterns\n- Support IP whitelisting for keys (optional)\n- Ensure keys are transmitted only over HTTPS\n\nEdge Cases:\n- Handle concurrent requests with same key\n- Manage key conflicts during rotation\n- Address timezone issues for expiration\n- Handle deleted users with active keys\n- Support bulk key operations for administrators",
+      "timestamp": "2026-01-17T07:29:08.690Z",
+      "source": "enhance",
+      "enhancementMode": "improve"
+    }
+  ]
 }

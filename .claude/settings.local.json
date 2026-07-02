@@ -10,7 +10,40 @@
       "Bash(find:*)",
       "Bash(cat:*)",
       "WebFetch(domain:github.com)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git status:*)",
+      "Bash(ls:*)",
+      "Bash(npx vitest run:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npx tsc:*)",
+      "Bash(wc:*)",
+      "Bash(npm run dev:*)",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__wait_for",
+      "mcp__chrome-devtools__fill",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__fill_form",
+      "Bash(xargs:*)",
+      "WebFetch(domain:single-spa.js.org)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(npm view:*)",
+      "WebFetch(domain:daisyui.com)",
+      "WebFetch(domain:v5.daisyui.com)",
+      "WebFetch(domain:blog.logrocket.com)",
+      "mcp__chrome-devtools__list_pages",
+      "Bash(npx playwright test:*)",
+      "Bash(node:*)",
+      "mcp__chrome-devtools__list_network_requests",
+      "mcp__chrome-devtools__get_network_request",
+      "Bash(npx wrangler d1 execute:*)"
     ]
+  },
+  "sandbox": {
+    "enabled": false,
+    "autoAllowBashIfSandboxed": false
   }
 }

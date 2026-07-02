@@ -199,3 +199,5 @@ typings/
 # -----------------------------------------------------------------------------
 # Keep .claude directory for AI assistant configuration
 # .claude/
+
+.superpowers/

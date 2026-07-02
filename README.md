@@ -9,33 +9,33 @@ Eldrin is a single-tenant platform that enables businesses to deploy customizabl
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│              CUSTOMER CLOUDFLARE WORKER                      │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │           ELDRIN SHELL (React + Vite + single-spa)     │ │
-│  │  Auth │ Navigation │ Orchestrator │ Theming │ Events   │ │
-│  └────────────────────────────────────────────────────────┘ │
-│       │           │            │            │               │
-│  ┌────┴───┐  ┌────┴───┐  ┌────┴───┐  ┌────┴───┐           │
-│  │Catalog │  │Invoice │  │  CRM   │  │  ...   │           │
-│  │  App   │  │  App   │  │  App   │  │  Apps  │           │
-│  └────┬───┘  └────┬───┘  └────┬───┘  └────┬───┘           │
-└───────│───────────│───────────│───────────│────────────────┘
-        ▼           ▼           ▼           ▼
-   [D1 + R2]   [D1 + R2]   [D1 + R2]   [D1 + R2]
+┌──────────────────────────────────────────────────────────────┐
+│                  CUSTOMER CLOUDFLARE WORKER                  │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │           ELDRIN SHELL (React + Vite + single-spa)     │  │
+│  │  Auth │ Navigation │ Orchestrator │ Theming │ Events   │  │
+│  └────────────────────────────────────────────────────────┘  │
+│         │             │              │              │        │
+│    ┌────┴───┐    ┌────┴───┐     ┌────┴───┐     ┌────┴───┐    │
+│    │Catalog │    │Invoice │     │  CRM   │ ... │  ...   │    │
+│    │  App   │    │  App   │     │  App   │     │  Apps  │    │
+│    └────┬───┘    └────┬───┘     └────┬───┘     └────┬───┘    │
+└─────────│─────────────│──────────────│──────────────│────────┘
+          ▼             ▼              ▼              ▼
+     [D1 + R2]      [D1 + R2]      [D1 + R2]      [D1 + R2]
 ```
 
 ### Key Technologies
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | React + Vite |
-| Micro-frontend | single-spa + Module Federation |
-| State Management | Zustand |
-| Runtime | Cloudflare Workers |
-| Database | Cloudflare D1 (SQLite) |
-| Storage | Cloudflare R2 |
-| Authentication | Custom JWT |
+| Layer            | Technology                     |
+| ---------------- | ------------------------------ |
+| Frontend         | React + Vite                   |
+| Micro-frontend   | single-spa + Module Federation |
+| State Management | Zustand                        |
+| Runtime          | Cloudflare Workers             |
+| Database         | Cloudflare D1 (SQLite)         |
+| Storage          | Cloudflare R2                  |
+| Authentication   | Custom JWT                     |
 
 ## Repository Structure
 
@@ -43,47 +43,47 @@ This is a **parent repository** that orchestrates multiple components via Git su
 
 ### Core Components
 
-| Directory | Description | Repository |
-|-----------|-------------|------------|
-| [`eldrin-core`](./eldrin-core) | Core platform shell, authentication, navigation, and orchestration | [eldrin-project/eldrin-core](https://github.com/eldrin-project/eldrin-core) |
-| [`eldrin-app-core`](./eldrin-app-core) | Framework-agnostic library for building Eldrin apps | [eldrin-project/eldrin-app-core](https://github.com/eldrin-project/eldrin-app-core) |
+| Directory                              | Description                                                        | Repository                                                                          |
+| -------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| [`eldrin-core`](./eldrin-core)         | Core platform shell, authentication, navigation, and orchestration | [eldrin-project/eldrin-core](https://github.com/eldrin-project/eldrin-core)         |
+| [`eldrin-app-core`](./eldrin-app-core) | Framework-agnostic library for building Eldrin apps                | [eldrin-project/eldrin-app-core](https://github.com/eldrin-project/eldrin-app-core) |
 
 ### Business Apps (Modules)
 
-| Directory | Description | Repository |
-|-----------|-------------|------------|
-| [`eldrin-invoicing`](./eldrin-invoicing) | Invoice and client management app | [eldrin-project/eldrin-invoicing](https://github.com/eldrin-project/eldrin-invoicing) |
-| [`eldrin-catalog`](./eldrin-catalog) | Product and service catalog management | [eldrin-project/eldrin-catalog](https://github.com/eldrin-project/eldrin-catalog) |
-| [`eldrin-crm`](./eldrin-crm) | Customer relationship management | [eldrin-project/eldrin-crm](https://github.com/eldrin-project/eldrin-crm) |
+| Directory                                | Description                            | Repository                                                                            |
+| ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------- |
+| [`eldrin-invoicing`](./eldrin-invoicing) | Invoice and client management app      | [eldrin-project/eldrin-invoicing](https://github.com/eldrin-project/eldrin-invoicing) |
+| [`eldrin-catalog`](./eldrin-catalog)     | Product and service catalog management | [eldrin-project/eldrin-catalog](https://github.com/eldrin-project/eldrin-catalog)     |
+| [`eldrin-crm`](./eldrin-crm)             | Customer relationship management       | [eldrin-project/eldrin-crm](https://github.com/eldrin-project/eldrin-crm)             |
 
 ### Framework-Specific App Templates
 
-| Directory | Description | Repository |
-|-----------|-------------|------------|
+| Directory                                    | Description                          | Repository                                                                                |
+| -------------------------------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------- |
 | [`eldrin-app-angular`](./eldrin-app-angular) | Angular app template and integration | [eldrin-project/eldrin-app-angular](https://github.com/eldrin-project/eldrin-app-angular) |
-| [`eldrin-app-react`](./eldrin-app-react) | React app template and integration | [eldrin-project/eldrin-app-react](https://github.com/eldrin-project/eldrin-app-react) |
-| [`eldrin-app-svelte`](./eldrin-app-svelte) | Svelte app template and integration | [eldrin-project/eldrin-app-svelte](https://github.com/eldrin-project/eldrin-app-svelte) |
-| [`eldrin-app-vue`](./eldrin-app-vue) | Vue app template and integration | [eldrin-project/eldrin-app-vue](https://github.com/eldrin-project/eldrin-app-vue) |
+| [`eldrin-app-react`](./eldrin-app-react)     | React app template and integration   | [eldrin-project/eldrin-app-react](https://github.com/eldrin-project/eldrin-app-react)     |
+| [`eldrin-app-svelte`](./eldrin-app-svelte)   | Svelte app template and integration  | [eldrin-project/eldrin-app-svelte](https://github.com/eldrin-project/eldrin-app-svelte)   |
+| [`eldrin-app-vue`](./eldrin-app-vue)         | Vue app template and integration     | [eldrin-project/eldrin-app-vue](https://github.com/eldrin-project/eldrin-app-vue)         |
 
 ### Infrastructure & Tooling
 
-| Directory | Description | Repository |
-|-----------|-------------|------------|
-| [`eldrin-website`](./eldrin-website) | Marketing website and landing pages | [eldrin-project/eldrin-website](https://github.com/eldrin-project/eldrin-website) |
-| [`eldrin-docs`](./eldrin-docs) | Developer documentation (Starlight/Astro) | [eldrin-project/eldrin-docs](https://github.com/eldrin-project/eldrin-docs) |
-| [`eldrin-templates`](./eldrin-templates) | Project scaffolding templates (`create-eldrin-project`) | [eldrin-project/eldrin-templates](https://github.com/eldrin-project/eldrin-templates) |
-| [`eldrin-marketplace-dist`](./eldrin-marketplace-dist) | Marketplace distribution and CDN assets | [eldrin-project/eldrin-marketplace-dist](https://github.com/eldrin-project/eldrin-marketplace-dist) |
+| Directory                                              | Description                                             | Repository                                                                                          |
+| ------------------------------------------------------ | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [`eldrin-website`](./eldrin-website)                   | Marketing website and landing pages                     | [eldrin-project/eldrin-website](https://github.com/eldrin-project/eldrin-website)                   |
+| [`eldrin-docs`](./eldrin-docs)                         | Developer documentation (Starlight/Astro)               | [eldrin-project/eldrin-docs](https://github.com/eldrin-project/eldrin-docs)                         |
+| [`eldrin-templates`](./eldrin-templates)               | Project scaffolding templates (`create-eldrin-project`) | [eldrin-project/eldrin-templates](https://github.com/eldrin-project/eldrin-templates)               |
+| [`eldrin-marketplace-dist`](./eldrin-marketplace-dist) | Marketplace distribution and CDN assets                 | [eldrin-project/eldrin-marketplace-dist](https://github.com/eldrin-project/eldrin-marketplace-dist) |
 
 ### Example Applications
 
 Example/demo todo applications showcasing framework integration:
 
-| Directory | Description | Repository |
-|-----------|-------------|------------|
+| Directory                        | Description              | Repository                                                                    |
+| -------------------------------- | ------------------------ | ----------------------------------------------------------------------------- |
 | [`angular-todo`](./angular-todo) | Angular todo example app | [eldrin-project/angular-todo](https://github.com/eldrin-project/angular-todo) |
-| [`react-todo`](./react-todo) | React todo example app | [eldrin-project/react-todo](https://github.com/eldrin-project/react-todo) |
-| [`svelte-todo`](./svelte-todo) | Svelte todo example app | [eldrin-project/svelte-todo](https://github.com/eldrin-project/svelte-todo) |
-| [`vue-todo`](./vue-todo) | Vue todo example app | [eldrin-project/vue-todo](https://github.com/eldrin-project/vue-todo) |
+| [`react-todo`](./react-todo)     | React todo example app   | [eldrin-project/react-todo](https://github.com/eldrin-project/react-todo)     |
+| [`svelte-todo`](./svelte-todo)   | Svelte todo example app  | [eldrin-project/svelte-todo](https://github.com/eldrin-project/svelte-todo)   |
+| [`vue-todo`](./vue-todo)         | Vue todo example app     | [eldrin-project/vue-todo](https://github.com/eldrin-project/vue-todo)         |
 
 ## Getting Started
 
@@ -128,13 +128,13 @@ Each submodule is an independent Git repository. The parent repository tracks sp
 
 #### Understanding Submodule States
 
-| State | Description | How to Identify |
-|-------|-------------|-----------------|
-| **Detached HEAD** | Default state after clone/update; not on any branch | `git status` shows "HEAD detached at..." |
-| **Clean** | No uncommitted changes | `git status` shows "nothing to commit" |
-| **Dirty** | Has uncommitted changes | `git status` shows modified/staged files |
-| **Ahead** | Local commits not pushed to remote | `git status` shows "ahead of origin/main by N commits" |
-| **Behind** | Remote has newer commits | `git status` shows "behind origin/main by N commits" |
+| State             | Description                                         | How to Identify                                        |
+| ----------------- | --------------------------------------------------- | ------------------------------------------------------ |
+| **Detached HEAD** | Default state after clone/update; not on any branch | `git status` shows "HEAD detached at..."               |
+| **Clean**         | No uncommitted changes                              | `git status` shows "nothing to commit"                 |
+| **Dirty**         | Has uncommitted changes                             | `git status` shows modified/staged files               |
+| **Ahead**         | Local commits not pushed to remote                  | `git status` shows "ahead of origin/main by N commits" |
+| **Behind**        | Remote has newer commits                            | `git status` shows "behind origin/main by N commits"   |
 
 #### Basic Submodule Workflow
 
@@ -216,14 +216,14 @@ Updates submodules to their recorded commits, remote HEAD, or a specific branch.
 ```
 
 **Options:**
-| Option | Description |
-|--------|-------------|
-| `--remote` | Update submodules to their remote tracking branch HEAD |
-| `--branch NAME` | Update submodules to a specific branch |
-| `--pull` | Pull latest changes within each submodule |
-| `--checkout` | Checkout the tracked branch (exit detached HEAD) |
-| `--dry-run` | Preview changes without applying them |
-| `--verbose` | Show detailed output |
+| Option          | Description                                            |
+| --------------- | ------------------------------------------------------ |
+| `--remote`      | Update submodules to their remote tracking branch HEAD |
+| `--branch NAME` | Update submodules to a specific branch                 |
+| `--pull`        | Pull latest changes within each submodule              |
+| `--checkout`    | Checkout the tracked branch (exit detached HEAD)       |
+| `--dry-run`     | Preview changes without applying them                  |
+| `--verbose`     | Show detailed output                                   |
 
 #### `scripts/status.sh` - Check Submodule Status
 
@@ -250,14 +250,14 @@ Displays the status of all submodules, including commit info, branch state, and 
 ```
 
 **Status Indicators:**
-| Indicator | Meaning |
-|-----------|---------|
-| `[CLEAN]` | No uncommitted changes |
-| `[DIRTY]` | Has uncommitted changes |
-| `[AHEAD n]` | n commits ahead of remote |
-| `[BEHIND n]` | n commits behind remote |
+| Indicator    | Meaning                            |
+| ------------ | ---------------------------------- |
+| `[CLEAN]`    | No uncommitted changes             |
+| `[DIRTY]`    | Has uncommitted changes            |
+| `[AHEAD n]`  | n commits ahead of remote          |
+| `[BEHIND n]` | n commits behind remote            |
 | `[DETACHED]` | HEAD is detached (not on a branch) |
-| `[NOT INIT]` | Submodule not initialized |
+| `[NOT INIT]` | Submodule not initialized          |
 
 ### Common Submodule Operations
 
