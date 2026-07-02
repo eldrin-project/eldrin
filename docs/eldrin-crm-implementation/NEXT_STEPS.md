@@ -47,10 +47,10 @@ Per `01_core_crm_foundation_mvp/phases/phase-07-email-integration/PLAN.md`:
 - [ ] Live validation end-to-end (step 0 smoke test + acceptance criteria), then DONE.md + commit
 
 ### 2. CRM Phase 10 — Zero Data Entry (the differentiator)
-- [ ] Auto-capture migration (`auto_captured_emails`, `auto_created_contacts`, `enrichment_cache`)
-- [ ] Smart linking with confidence scores + review UI; provisional contact auto-creation; signature parser
-- [ ] **Enrichment as an eldrin-integration connector** (API-key REST fits the SDK; second real consumer after factorial)
-- [ ] **Calendar sync: extend eldrin-email** (reuses OAuth tokens/mailboxes; the SDK has no OAuth) — gap not covered by existing plans; write a small plan first
+- [x] **Slice 1 — auto-capture core** *(2026-07-02, commit f382022; live-validated)*: contact auto-creation from unknown inbound senders (name from display header, owner-guard, idempotent under redelivery), confidence heuristic (0.3–0.9) with badge + Confirm action, signature parser (phones/social extracted live; job title needs multi-line text), company-domain linking, merged audit+activity ContactDetail timeline (captured emails finally visible on the contact card). 59 CRM tests.
+- [ ] **Slice 2 — richer capture text:** extend eldrin-email's `email.received` payload with truncated `bodyText` (snippet-only defeats line-based signature heuristics — live-confirmed: phone/LinkedIn extracted from a one-line snippet but job title missed) + teach the parser inline comma-separated signatures.
+- [ ] **Slice 3 — enrichment** as an eldrin-integration connector (API-key REST fits the SDK; second real consumer after factorial) + ghost-activity detection + deal auto-detection suggestions.
+- [ ] **Slice 4 — calendar sync: extend eldrin-email** (reuses OAuth mailboxes; needs new Google scopes → mailbox re-consent) — write a small plan first.
 
 ### 3. Finish eldrin-workflows instead of building CRM Phase-2 automation
 - [x] Webhook parses the live core envelope + verifies the service secret *(2026-07-02; live-validated — a CRM `contact.created` created a run with correct triggerData)*
