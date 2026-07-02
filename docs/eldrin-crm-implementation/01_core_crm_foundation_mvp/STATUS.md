@@ -14,7 +14,7 @@
 | 04 | Deal / Pipeline Management | complete |
 | 05 | Activity & Task Management | complete |
 | 06 | Basic Reporting & Dashboards | complete |
-| 07 | Email Integration | not_started |
+| 07 | Email Integration | complete |
 | 08 | Data Import / Export | complete |
 | 09 | System & UX Foundations | complete |
 | 10 | Zero Data Entry & Auto-Capture ★ | not_started |
@@ -22,7 +22,7 @@
 
 ## Notes:
 
-**9 of 11 sub-phases complete.** Two remain, both gated on the standalone `eldrin-email` extension app (see `docs/eldrin_email_client/`):
+**10 of 11 sub-phases complete.** Two remain, both gated on the standalone `eldrin-email` extension app (see `docs/eldrin_email_client/`):
 - **07 Email Integration** — send-from-record, BCC-to-CRM, templates, open/click tracking. Restructured to consume `eldrin-email` rather than build email infra in the CRM.
 - **10 Zero Data Entry & Auto-Capture ★** — the flagship differentiator (auto email/calendar capture, smart linking, enrichment). Depends on 07 + `eldrin-email` mailbox sync being operational.
 
