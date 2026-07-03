@@ -31,7 +31,7 @@ The differentiators only become real when auto-capture works end-to-end. That is
 
 ### 0. Prove the event seam (runtime smoke test) — ~half a day
 - [x] Run eldrin-core + eldrin-email + eldrin-crm locally; emit a test event; confirm push delivery to a subscriber, retries (401→retry→delivered observed) *(2026-07-02 — full flow validated: emit → bus → CRM webhook → activity on contact)*
-- [ ] Delete or quarantine legacy `eldrin-core/worker/events/` to remove the `/api/_events/receive` trap.
+- [x] Delete or quarantine legacy `eldrin-core/worker/events/` to remove the `/api/_events/receive` trap. *(2026-07-02 — deleted in eldrin-core `3a62c0c`)*
 - [x] **RESOLVED (2026-07-02) — shared-secret service auth:** `X-Eldrin-App-Secret` header (= shared `JWT_SECRET`) both directions. SDK event client sends it on emit/poll/ack/nack (`eldrin-app-core/src/events/client.ts`, `buildAuthHeaders()`); core validates it on those four endpoints (`core/app.ts` `isValidServiceSecret`, falls through to JWT auth when absent) and attaches it on webhook pushes (`core/routes/events.ts` `buildPushAuthHeaders()`); CRM webhook enforces it when `JWT_SECRET` is set. Comparison isolated in per-repo helpers for a later HMAC swap. Live-validated: CRM `contact.created` emits cleanly; secured `email.received` push delivered to the enforcing webhook; wrong/missing secret → 401 on both sides. Remaining follow-up: eldrin-email + eldrin-workflows webhooks should also verify the header (fold into the envelope fix).
 
 ### 1. CRM Phase 07 — Email Integration (unblocked; plan exists)

@@ -128,6 +128,7 @@ libpeerconnection.log
 coverage/
 .nyc_output/
 __screenshots__/
+test-results/
 
 # -----------------------------------------------------------------------------
 # Cloud Platform / Deployment
