@@ -42,9 +42,9 @@ Per `01_core_crm_foundation_mvp/phases/phase-07-email-integration/PLAN.md`:
 - [x] 7.4 email history tab (`GET …/email/history?contactEmail=`) *(2026-07-02)*
 - [x] 7.6 graceful degradation when email app absent (`useEmailApp`) *(2026-07-02)*
 - [x] 7.7 **declare + emit CRM events** (`contact.created/updated`, `deal.created/stage_changed`, `lead.converted`) *(2026-07-02)*
-- [ ] 7.8 seed CRM email templates (needs running eldrin-email — do during live validation)
+- [x] 7.8 seed CRM email templates (4 templates created in eldrin-email) *(2026-07-02)*
 - [x] Tests for linking/dedup services (started the CRM test suite: 21 tests) *(2026-07-02)*
-- [ ] Live validation end-to-end (step 0 smoke test + acceptance criteria), then DONE.md + commit
+- [x] Live validation end-to-end + DONE.md *(2026-07-02 — real send round trip, idempotent redelivery, workflow-triggered send all verified; see phase-07 DONE.md)* — **Phase 07 COMPLETE**
 
 ### 2. CRM Phase 10 — Zero Data Entry (the differentiator)
 - [x] **Slice 1 — auto-capture core** *(2026-07-02, commit f382022; live-validated)*: contact auto-creation from unknown inbound senders (name from display header, owner-guard, idempotent under redelivery), confidence heuristic (0.3–0.9) with badge + Confirm action, signature parser (phones/social extracted live; job title needs multi-line text), company-domain linking, merged audit+activity ContactDetail timeline (captured emails finally visible on the contact card). 59 CRM tests.
@@ -62,9 +62,9 @@ Per `01_core_crm_foundation_mvp/phases/phase-07-email-integration/PLAN.md`:
 
 ### 4. Hygiene (parallel, ongoing)
 - [ ] Rotate + purge committed secrets in `eldrin-email/.dev.vars` and `private/`
-- [ ] Sync eldrin-email manifest `api.routes` with real routes
+- [x] Sync eldrin-email manifest `api.routes` with real routes *(2026-07-02, parent commit 949a521)*
 - [ ] CRM test coverage: services first (linking, dedup, signature parsing, lead conversion)
-- [ ] **Envelope mismatch (found 2026-07-02):** the live core pushes `{deliveryId, event: {id, type, source, payload, version}}` (`eldrin-core/core/routes/events.ts:534`), but the `eldrin-email` and `eldrin-workflows` webhook handlers read a flat `{type, payload}` — they silently drop every real delivery. The CRM handler accepts both shapes; fix email + workflows the same way. Event pushes also carry **no auth**, so webhook endpoints are public — consider a shared-secret header in core.
+- [x] **Envelope mismatch (found 2026-07-02):** ~~the `eldrin-email` and `eldrin-workflows` webhook handlers read a flat `{type, payload}`~~ *(RESOLVED 2026-07-02 — live-envelope parsing fixed in both apps; webhook auth resolved via `X-Eldrin-App-Secret` shared-secret service auth across SDK/core/apps. See phase-07 DONE.md.)*
 
 ## Order
 
