@@ -122,7 +122,7 @@
       {
         "type": "email.received",
         "description": "New email synced from provider",
-        "payload": { "messageId": "string", "threadId": "string", "from": "string", "to": "string", "subject": "string", "snippet": "string", "receivedAt": "string" }
+        "payload": { "messageId": "string", "threadId": "string", "from": "string", "to": "string", "subject": "string", "snippet": "string", "bodyText": "string? (plain text, max 4000 chars; null when mailbox sync depth fetches no body)", "receivedAt": "string" }
       },
       {
         "type": "email.sent",

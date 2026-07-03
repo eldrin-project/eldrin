@@ -26,7 +26,8 @@ describe('eldrin-email scaffold', () => {
 
   it('manifest declares public tracking routes', async () => {
     const manifest = await import('../../public/eldrin-app.manifest.json');
-    expect(manifest.api.publicRoutes).toContain('/api/track/:trackingId/pixel.gif');
-    expect(manifest.api.publicRoutes).toContain('/api/track/:trackingId/click');
+    // publicRoutes follow the eldrin-crm convention: paths relative to the
+    // /api prefix, wildcards allowed (see "sync manifest api.routes" commit).
+    expect(manifest.api.publicRoutes).toContain('/track/*');
   });
 });

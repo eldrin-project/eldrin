@@ -9,6 +9,7 @@ const mockListHistory = vi.fn();
 const mockGetMessage = vi.fn();
 const mockGetProfile = vi.fn();
 const mockParseGmailMessage = vi.fn();
+const mockEmitEmailReceived = vi.fn();
 
 vi.mock('../services/crypto', () => ({
   decryptToken: (...args: unknown[]) => mockDecryptToken(...args),
@@ -32,6 +33,15 @@ vi.mock('../services/gmail-client', () => ({
     }
   },
 }));
+
+// Partial mock: capture emitted events but keep the real buildEventBodyText.
+vi.mock('../services/event-emitter', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services/event-emitter')>();
+  return {
+    ...actual,
+    emitEmailReceived: (...args: unknown[]) => mockEmitEmailReceived(...args),
+  };
+});
 
 import { syncMailbox } from '../services/email-sync';
 
@@ -134,6 +144,7 @@ beforeEach(() => {
   mockDecryptToken.mockResolvedValue('decrypted-access-token');
   mockEncryptToken.mockResolvedValue('encrypted-token');
   mockGetProfile.mockResolvedValue({ emailAddress: 'user@gmail.com', historyId: '99999' });
+  mockEmitEmailReceived.mockResolvedValue(undefined);
 });
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -326,6 +337,88 @@ describe('syncMailbox', () => {
 
     expect(result.emailsInserted).toBe(1);
     expect(result.messagesProcessed).toBe(1);
+  });
+
+  it('emits email.received with bodyText when the full body was fetched', async () => {
+    const db = createMockDb();
+    const mailbox = createTestMailbox({ syncDepth: 'full' });
+    const parsed = createParsedEmail({
+      fromAddress: 'external@other.com',
+      bodyText: 'Hello,\n\nFull plain body.\n\nBest regards,\nJane',
+      bodyHtml: '<p>Hello</p>',
+    });
+
+    mockListMessages.mockResolvedValueOnce({
+      messages: [{ id: 'msg-1', threadId: 'thread-1' }],
+    });
+    mockGetMessage.mockResolvedValueOnce({ id: 'msg-1', threadId: 'thread-1' });
+    mockParseGmailMessage.mockReturnValueOnce(parsed);
+
+    await syncMailbox(db as any, mailbox as any, ENV);
+
+    expect(mockEmitEmailReceived).toHaveBeenCalledTimes(1);
+    const [, payload] = mockEmitEmailReceived.mock.calls[0];
+    expect(payload.bodyText).toBe('Hello,\n\nFull plain body.\n\nBest regards,\nJane');
+    expect(payload.snippet).toBe('Test snippet...');
+    expect(payload.from).toBe('external@other.com');
+  });
+
+  it('emits email.received with bodyText derived from HTML when no plain text exists', async () => {
+    const db = createMockDb();
+    const mailbox = createTestMailbox({ syncDepth: 'full' });
+    const parsed = createParsedEmail({
+      fromAddress: 'external@other.com',
+      bodyText: null,
+      bodyHtml: '<div>Hi there</div>',
+    });
+
+    mockListMessages.mockResolvedValueOnce({
+      messages: [{ id: 'msg-1', threadId: 'thread-1' }],
+    });
+    mockGetMessage.mockResolvedValueOnce({ id: 'msg-1', threadId: 'thread-1' });
+    mockParseGmailMessage.mockReturnValueOnce(parsed);
+
+    await syncMailbox(db as any, mailbox as any, ENV);
+
+    expect(mockEmitEmailReceived).toHaveBeenCalledTimes(1);
+    expect(mockEmitEmailReceived.mock.calls[0][1].bodyText).toBe('Hi there');
+  });
+
+  it('emits email.received with null bodyText for metadata sync depth', async () => {
+    const db = createMockDb();
+    const mailbox = createTestMailbox({ syncDepth: 'metadata' });
+    // Metadata-format parses carry no body at all
+    const parsed = createParsedEmail({ fromAddress: 'external@other.com' });
+
+    mockListMessages.mockResolvedValueOnce({
+      messages: [{ id: 'msg-1', threadId: 'thread-1' }],
+    });
+    mockGetMessage.mockResolvedValueOnce({ id: 'msg-1', threadId: 'thread-1' });
+    mockParseGmailMessage.mockReturnValueOnce(parsed);
+
+    await syncMailbox(db as any, mailbox as any, ENV);
+
+    expect(mockEmitEmailReceived).toHaveBeenCalledTimes(1);
+    const [, payload] = mockEmitEmailReceived.mock.calls[0];
+    expect(payload.bodyText).toBeNull();
+    expect(payload.snippet).toBe('Test snippet...');
+  });
+
+  it('does not emit email.received for outbound messages', async () => {
+    const db = createMockDb();
+    const mailbox = createTestMailbox({ syncDepth: 'full' });
+    // fromAddress equals the mailbox address → outbound
+    const parsed = createParsedEmail({ fromAddress: 'user@gmail.com' });
+
+    mockListMessages.mockResolvedValueOnce({
+      messages: [{ id: 'msg-1', threadId: 'thread-1' }],
+    });
+    mockGetMessage.mockResolvedValueOnce({ id: 'msg-1', threadId: 'thread-1' });
+    mockParseGmailMessage.mockReturnValueOnce(parsed);
+
+    await syncMailbox(db as any, mailbox as any, ENV);
+
+    expect(mockEmitEmailReceived).not.toHaveBeenCalled();
   });
 
   it('updates sync cursor after successful sync', async () => {

@@ -19,7 +19,11 @@ import { connectedMailboxes, emailThreads, emails } from '../db/schema';
 import { generateId, now } from '../utils';
 import { getProvider, getAccessToken, ProviderApiError } from './providers';
 import type { MessageRef, ParsedEmail } from './providers';
-import { emitEmailReceived, type EmailReceivedPayload } from './event-emitter';
+import {
+  buildEventBodyText,
+  emitEmailReceived,
+  type EmailReceivedPayload,
+} from './event-emitter';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -237,6 +241,9 @@ export async function syncMailbox(
               to: parsed.toAddresses,
               subject: parsed.subject,
               snippet: parsed.snippet,
+              // Truncated plain text for downstream signature parsing; null
+              // when this sync depth fetched no body (metadata format).
+              bodyText: buildEventBodyText(parsed.bodyText, parsed.bodyHtml),
               receivedAt: parsed.receivedAt,
             });
           }
