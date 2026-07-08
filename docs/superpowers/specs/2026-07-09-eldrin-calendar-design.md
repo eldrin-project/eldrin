@@ -18,6 +18,8 @@ Build the foundation of `eldrin-calendar`: a new standalone Eldrin extension app
 - **D6 — Multiple calendars** (user, 2026-07-08): calendars table with colors + sidebar visibility toggles; default calendar seeded lazily per user.
 - **D7 — Server-side expansion, provider-shaped storage** (user, 2026-07-08): recurring events stored as master + exception rows; the worker expands RRULEs for a requested range; every consumer (own UI, CRM widget) reads expanded occurrences from one endpoint.
 - **D8 — Provider-neutral internal model** (user, 2026-07-09): internal standard is **iCalendar RFC 5545 semantics** (RRULE + master/exception). Google is near-native; Microsoft Graph's structured recurrence converts deterministically to/from RRULE and its seriesMaster/occurrence/exception types map onto our rows; CalDAV is native. Provider integrations are **adapter modules** added in later slices; core CRUD/expansion/UI never know the provider. Schema carries `provider` + `external_id` columns from day one.
+- **D9 — Local-first, standalone by default** (user, 2026-07-09): the calendar is fully functional with zero external providers. `provider='local'` calendars are first-class forever, not a fallback; no feature in any slice may require a connected provider account. Provider sync is purely additive.
+- **D10 — Webhook-driven incremental sync** (user, 2026-07-09): provider sync (4b+) uses **push notifications as the trigger and sync tokens as the payload** — Google watch channels → `events.list` with `syncToken`; Microsoft Graph change-notification subscriptions (validation handshake + `clientState`) → delta query with `deltaToken`. Notifications carry no event data by design; each one triggers an incremental fetch. Channels/subscriptions expire (Google ~days, Graph ~3 days for calendars) → a renewal job keeps them alive, and a **low-frequency reconciliation poll** remains as safety net (also the only path in dev, where localhost cannot receive provider webhooks). No brute-force polling as the primary mechanism.
 
 ## 3. Scope
 
@@ -30,7 +32,7 @@ Build the foundation of `eldrin-calendar`: a new standalone Eldrin extension app
 - CRM: mirror handler (Meeting activities) + `UpcomingMeetingsWidget` + `/api/reports/upcoming-meetings` cross-app endpoint.
 
 **Out (later slices):**
-- Provider sync (Google 4b, Outlook 4c+): OAuth, token encryption, cron polling, sync tokens/etags, `connected_accounts` table (modeled on eldrin-email's `connected_mailboxes`, whose provider enum already proves the multi-provider linked-account pattern).
+- Provider sync (Google 4b, Outlook 4c+): OAuth, token encryption, webhook-triggered incremental sync per D10 (watch channels / Graph subscriptions + sync/delta tokens, renewal job, reconciliation-poll fallback), `connected_accounts` table (modeled on eldrin-email's `connected_mailboxes`, whose provider enum already proves the multi-provider linked-account pattern).
 - Attendee RSVP/response status, invitations, notifications, reminders.
 - Free/busy, availability, scheduling links.
 - Per-occurrence mirror granularity in CRM (mirror is series-level; see §9).
@@ -194,4 +196,13 @@ All routes behind `createPermissionMiddleware` per the manifest; platform envelo
 
 ## 13. Slice 4b Preview (context only, not in scope)
 
-`connected_accounts` table (per eldrin-email `connected_mailboxes`: encrypted tokens via JWT_SECRET-keyed AES, provider enum, sync cursor/status), Google adapter (`worker/services/providers/google.ts`), OAuth connect/callback routes (public in manifest, settings.groups GOOGLE CLIENT_ID/SECRET pattern), 15-min wrangler cron `scheduled` handler for incremental sync, two-way write-back, per-occurrence mirror granularity revisit. Outlook adapter (Microsoft Graph) follows as 4c using the same adapter interface.
+Per D9, everything below is additive — local calendars remain fully functional without it.
+
+- `connected_accounts` table (per eldrin-email `connected_mailboxes`: encrypted tokens via JWT_SECRET-keyed AES, provider enum, sync cursor/status) + OAuth connect/callback routes (public in manifest, settings.groups GOOGLE CLIENT_ID/SECRET pattern).
+- **Sync architecture per D10 — webhook-triggered incremental sync:**
+  - Public, secret-validated notification endpoint per provider (e.g. `POST /api/sync/notify/google` verifying the channel token; Graph endpoint additionally answers the validation-token handshake and checks `clientState`).
+  - Notification → enqueue incremental fetch (`events.list` + `syncToken` for Google; delta query + `deltaToken` for Graph) inside `waitUntil`; upsert through the provider adapter into the RFC 5545 model keyed by `(calendar_id, external_id)`.
+  - Expired/invalidated sync token (Google 410 GONE) → full resync of that calendar.
+  - **Renewal job** (wrangler cron `scheduled` handler): re-arm watch channels / Graph subscriptions before expiry; same cron does a low-frequency reconciliation poll as fallback — and is the sole sync path in dev, where provider webhooks cannot reach localhost.
+- Google adapter (`worker/services/providers/google.ts`) first; Outlook adapter (Microsoft Graph, `providers/outlook.ts`) follows as 4c behind the same adapter interface (translate ⇄ RFC 5545, list-changes, watch/renew, write-back).
+- Two-way write-back of local edits to the owning provider; per-occurrence CRM mirror granularity revisit; attendee RSVP status.
