@@ -40,7 +40,7 @@ Build the foundation of `eldrin-calendar`: a new standalone Eldrin extension app
 ## 4. Architecture
 
 ```
-eldrin-calendar (port 4011, own D1)
+eldrin-calendar (port 4012, own D1)
 ├── src/            React 19 + single-spa entry, FullCalendar UI, daisyUI "Quiet Ledger"
 └── worker/         Hono 4 + Drizzle over D1
     ├── db/schema.ts
@@ -55,7 +55,7 @@ eldrin-crm (existing)
 
 - Scaffold **structure** from `eldrin-templates/templates/cloudflare-react-sqlite` (manifest, worker bootstrap with `runMigrations` + `createPermissionMiddleware` + `createEventClient`, migrations generator, single-spa entry, `.dev.vars` with shared `JWT_SECRET`). Adopt **eldrin-crm's** daisyUI 5 Quiet Ledger design system and vitest + better-sqlite3 worker test harness instead of the template's shadcn components.
 - New git repo, gitlinked as a parent-repo submodule like eldrin-crm/eldrin-email.
-- Dev registration: run on 4011, `POST /api/apps` to eldrin-core (port 4000) with the app URL; core reads `/eldrin-app.manifest.json` and syncs permissions/routes.
+- Dev registration: run on 4012, `POST /api/apps` to eldrin-core (port 4000) with the app URL; core reads `/eldrin-app.manifest.json` and syncs permissions/routes.
 - Migration filenames use the mandatory 14-digit timestamp prefix; `worker/migrations.generated.ts` stays gitignored and is regenerated via `npm run generate:migrations`.
 
 ## 5. Data Model (D1, Drizzle)
