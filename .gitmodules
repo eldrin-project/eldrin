@@ -58,3 +58,6 @@
 [submodule "eldrin-workflows"]
 	path = eldrin-workflows
 	url = https://github.com/eldrin-project/eldrin-workflows.git
+[submodule "eldrin-calendar"]
+	path = eldrin-calendar
+	url = git@github.com:eldrin-project/eldrin-calendar.git
