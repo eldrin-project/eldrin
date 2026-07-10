@@ -32,6 +32,9 @@ export const BODY_TEXT_MAX = 4000;
 export interface EmailReceivedPayload {
   messageId: string;
   threadId: string;
+  /** Receiving mailbox — lets consumers attribute the relationship (CRM assigned-mailbox). */
+  mailboxId: string;
+  mailboxEmail: string;
   from: string;
   to: string[];
   subject: string | null;

@@ -237,6 +237,8 @@ export async function syncMailbox(
             newInboundEmails.push({
               messageId: parsed.messageId,
               threadId,
+              mailboxId: mailbox.id,
+              mailboxEmail: mailbox.emailAddress,
               from: parsed.fromAddress,
               to: parsed.toAddresses,
               subject: parsed.subject,

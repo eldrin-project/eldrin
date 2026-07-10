@@ -363,6 +363,24 @@ describe('syncMailbox', () => {
     expect(payload.from).toBe('external@other.com');
   });
 
+  it('email.received payload carries the receiving mailbox identity', async () => {
+    const db = createMockDb();
+    const mailbox = createTestMailbox({ syncDepth: 'full' });
+    const parsed = createParsedEmail({ fromAddress: 'external@other.com' });
+
+    mockListMessages.mockResolvedValueOnce({
+      messages: [{ id: 'msg-1', threadId: 'thread-1' }],
+    });
+    mockGetMessage.mockResolvedValueOnce({ id: 'msg-1', threadId: 'thread-1' });
+    mockParseGmailMessage.mockReturnValueOnce(parsed);
+
+    await syncMailbox(db as any, mailbox as any, ENV);
+
+    const payload = mockEmitEmailReceived.mock.calls.at(-1)?.[1] as Record<string, unknown>;
+    expect(payload.mailboxId).toBe('mailbox-1');
+    expect(payload.mailboxEmail).toBe('user@gmail.com');
+  });
+
   it('emits email.received with bodyText derived from HTML when no plain text exists', async () => {
     const db = createMockDb();
     const mailbox = createTestMailbox({ syncDepth: 'full' });
