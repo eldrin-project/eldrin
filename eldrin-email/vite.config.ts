@@ -67,7 +67,13 @@ function devShellCompat(): Plugin {
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  // Lib-mode builds keep process.env.NODE_ENV unreplaced (React's CJS entry
+  // shim reads it at runtime), but browsers have no `process` — the served
+  // bundle dies in LOADING_SOURCE_CODE. Pin it at build time.
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(mode === 'development' ? 'development' : 'production'),
+  },
   plugins: [react(), cloudflare(), tailwindcss(), devShellCompat()],
   resolve: {
     alias: {
@@ -95,4 +101,4 @@ export default defineConfig({
       fileName: 'eldrin-email',
     },
   },
-});
+}));
