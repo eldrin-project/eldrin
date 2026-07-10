@@ -32,7 +32,7 @@ export interface EmailProvider {
     refreshToken: string,
     clientId: string,
     clientSecret: string,
-  ): Promise<{ accessToken: string; expiresIn: number }>;
+  ): Promise<{ accessToken: string; expiresIn: number; newRefreshToken?: string }>;
 
   /**
    * Collect message references for first-time sync.

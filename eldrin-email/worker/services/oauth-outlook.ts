@@ -101,7 +101,7 @@ export async function refreshOutlookToken(
   refreshToken: string,
   clientId: string,
   clientSecret: string,
-): Promise<{ accessToken: string; expiresIn: number }> {
+): Promise<{ accessToken: string; expiresIn: number; newRefreshToken?: string }> {
   const res = await fetch(MS_TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -122,11 +122,13 @@ export async function refreshOutlookToken(
   const data = await res.json() as {
     access_token: string;
     expires_in: number;
+    refresh_token?: string; // Microsoft ROTATES refresh tokens (AAD v2)
   };
 
   return {
     accessToken: data.access_token,
     expiresIn: data.expires_in,
+    ...(data.refresh_token ? { newRefreshToken: data.refresh_token } : {}),
   };
 }
 

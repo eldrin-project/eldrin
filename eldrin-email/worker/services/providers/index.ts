@@ -102,6 +102,11 @@ export async function getAccessToken(
   await db.update(connectedMailboxes)
     .set({
       accessTokenEncrypted: newEncrypted,
+      // Microsoft rotates refresh tokens — persist the replacement or the
+      // mailbox bricks on the next refresh (live-verified in calendar 4c).
+      ...(refreshed.newRefreshToken
+        ? { refreshTokenEncrypted: await encryptToken(refreshed.newRefreshToken, env.JWT_SECRET) }
+        : {}),
       tokenExpiresAt: timestamp + refreshed.expiresIn * 1000,
       updatedAt: timestamp,
     })

@@ -148,7 +148,7 @@ export class OutlookProvider implements EmailProvider {
     refreshToken: string,
     clientId: string,
     clientSecret: string,
-  ): Promise<{ accessToken: string; expiresIn: number }> {
+  ): Promise<{ accessToken: string; expiresIn: number; newRefreshToken?: string }> {
     return refreshOutlookToken(refreshToken, clientId, clientSecret);
   }
 
