@@ -61,3 +61,6 @@
 [submodule "eldrin-calendar"]
 	path = eldrin-calendar
 	url = git@github.com:eldrin-project/eldrin-calendar.git
+[submodule "eldrin-enricher"]
+	path = eldrin-enricher
+	url = git@github.com:eldrin-project/eldrin-enricher.git
