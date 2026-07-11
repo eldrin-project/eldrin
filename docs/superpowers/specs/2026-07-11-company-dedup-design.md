@@ -95,7 +95,11 @@ Changes in `worker/services/auto-capture.ts` /
   current value is a subdomain of it.
 - **Soft-delete** sources (`isDeleted = true`, `deletedAt = now()`) — they
   land in the existing recycle bin, so a bad merge is recoverable.
-- Execute as a single D1 batch so a partial merge cannot be left behind.
+- Writes run sequentially in a safe order (the codebase uses no D1 batch API,
+  and the better-sqlite3 test harness could not exercise one): references are
+  re-pointed first and destructive steps (soft-delete) run last, so an
+  interrupted merge leaves only already-re-pointed rows — nothing is lost and
+  re-running the same merge completes the remainder.
 
 ## Part 4 — UI: review surface in Companies
 
@@ -129,8 +133,9 @@ Changes in `worker/services/auto-capture.ts` /
   recycle-bin recovery, validation failures).
 - **Route tests** for both endpoints (auth via existing permission
   middleware).
-- **Component test** for the duplicates review UI (render groups, pick
-  survivor, merge call).
+- **Browser walkthrough** for the duplicates review UI (render groups, pick
+  survivor, merge) — the repo has no frontend test infra (vitest only covers
+  `worker/**`), so the UI is verified by typecheck + build + live walkthrough.
 
 ## Outcome for the motivating case
 
