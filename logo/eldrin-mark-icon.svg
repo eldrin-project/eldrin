@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="eldrin-mark-g" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#312E81"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#eldrin-mark-g)"/>
+  <path d="M9.5 8 H23 V11.8 H13.5 V14.2 H21 V17.8 H13.5 V20.2 H23 V24 H9.5 Z" fill="#FFFFFF"/>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="eldrin-aperture-g" x1="12" y1="12" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4338CA"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <path d="M26.9 17.2 A11 11 0 0 1 11.5 26.1" stroke="#312E81" stroke-width="3" stroke-linecap="round"/>
+  <path d="M9.5 24.9 A11 11 0 0 1 9.5 7.1" stroke="#7C3AED" stroke-width="3" stroke-linecap="round"/>
+  <path d="M11.5 5.9 A11 11 0 0 1 26.9 14.9" stroke="#A78BFA" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="16" cy="16" r="3.8" fill="url(#eldrin-aperture-g)"/>
+</svg>

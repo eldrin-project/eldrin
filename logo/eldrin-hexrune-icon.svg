@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="eldrin-hexrune-g" x1="5" y1="4" x2="27" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#312E81"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <path d="M16 4 L26.39 10 V22 L16 28 L5.61 22 V10 Z" stroke="url(#eldrin-hexrune-g)" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M20.5 11.5 H12.5 V20.5 H20.5 M12.5 16 H18" stroke="#A78BFA" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>

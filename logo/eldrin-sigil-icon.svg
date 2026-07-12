@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="eldrin-sigil-ring" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#312E81"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <linearGradient id="eldrin-sigil-rune" x1="12" y1="9" x2="22" y2="23" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#A78BFA"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <!-- broken ring: gap on the right, an open (extensible) enclosure -->
+  <path d="M27.3 12.7 A12 12 0 1 0 27.3 19.3" stroke="url(#eldrin-sigil-ring)" stroke-width="2" stroke-linecap="round"/>
+  <!-- carved rune E: square caps, miter joins -->
+  <path d="M21.5 9.5 H12 V22.5 H21.5 M12 16 H18.5" stroke="url(#eldrin-sigil-rune)" stroke-width="2.6" stroke-linecap="square" stroke-linejoin="miter"/>
+  <!-- spark in the ring gap -->
+  <path d="M28.2 13.9 L29.9 16 L28.2 18.1 L26.5 16 Z" fill="#A78BFA"/>
+</svg>

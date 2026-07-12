@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="eldrin-lowercase-g" x1="6" y1="6" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#312E81"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <path d="M25.8 17.7 A10 10 0 1 0 21.7 24.2" stroke="url(#eldrin-lowercase-g)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M6.3 16 H25.9" stroke="url(#eldrin-lowercase-g)" stroke-width="3.4" stroke-linecap="round"/>
+</svg>

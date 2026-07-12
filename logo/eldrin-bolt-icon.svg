@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="eldrin-bolt-g" x1="7" y1="3" x2="25" y2="29" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4338CA"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <path d="M19 3 L7 18 H14 L12.5 29 L25 13 H17.5 L19 3 Z" fill="url(#eldrin-bolt-g)" stroke-linejoin="round"/>
+</svg>

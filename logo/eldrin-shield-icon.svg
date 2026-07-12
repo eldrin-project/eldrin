@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="eldrin-shield-g" x1="5" y1="3" x2="27" y2="29" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#312E81"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <path d="M16 3 L27 7 V15 C27 22 22.5 27 16 29 C9.5 27 5 22 5 15 V7 Z" fill="url(#eldrin-shield-g)"/>
+  <path d="M20.5 10.5 H12.5 V21 H20.5 M12.5 15.5 H18.5" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>

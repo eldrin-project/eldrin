@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="eldrin-crystal-g" x1="7" y1="4" x2="25" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4338CA"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <path d="M16 4 L25 12 L16 28 L7 12 Z" fill="url(#eldrin-crystal-g)"/>
+  <path d="M7 12 H25 M16 4 L11.5 12 L16 28 M16 4 L20.5 12 L16 28" stroke="#FFFFFF" stroke-width="1.1" opacity="0.5" stroke-linejoin="round"/>
+  <path d="M26.5 4 C26.8 5.5 27.7 6.2 29 6.5 C27.7 6.8 26.8 7.5 26.5 9 C26.2 7.5 25.3 6.8 24 6.5 C25.3 6.2 26.2 5.5 26.5 4 Z" fill="#A78BFA"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="eldrin-crescent-g" x1="5" y1="4" x2="20" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#312E81"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <path d="M20 4.5 A12 12 0 1 0 20 27.5 A15 15 0 0 1 20 4.5 Z" fill="url(#eldrin-crescent-g)"/>
+  <path d="M21.5 12.8 C21.9 14.6 22.9 15.6 24.7 16 C22.9 16.4 21.9 17.4 21.5 19.2 C21.1 17.4 20.1 16.4 18.3 16 C20.1 15.6 21.1 14.6 21.5 12.8 Z" fill="#A78BFA"/>
+</svg>

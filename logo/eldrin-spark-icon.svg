@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="eldrin-spark-g" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#312E81"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <path d="M16 4 C17 11 21 15 28 16 C21 17 17 21 16 28 C15 21 11 17 4 16 C11 15 15 11 16 4 Z" fill="url(#eldrin-spark-g)"/>
+  <path d="M25.5 3.5 C25.9 5.3 26.9 6.1 28.5 6.5 C26.9 6.9 25.9 7.7 25.5 9.5 C25.1 7.7 24.1 6.9 22.5 6.5 C24.1 6.1 25.1 5.3 25.5 3.5 Z" fill="#A78BFA"/>
+</svg>

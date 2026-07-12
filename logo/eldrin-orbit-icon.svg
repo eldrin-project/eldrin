@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="eldrin-orbit-g" x1="12" y1="12" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4338CA"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <g transform="rotate(-20 16 16)">
+    <ellipse cx="16" cy="16" rx="13" ry="6.2" stroke="#A78BFA" stroke-width="1.6"/>
+    <circle cx="29" cy="16" r="2.2" fill="#7C3AED"/>
+    <circle cx="6" cy="20" r="1.7" fill="#312E81"/>
+  </g>
+  <circle cx="16" cy="16" r="4.6" fill="url(#eldrin-orbit-g)"/>
+</svg>

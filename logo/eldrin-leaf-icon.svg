@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="eldrin-leaf-g" x1="7" y1="26" x2="26" y2="6" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#312E81"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <path d="M26 6 C26 19 19.5 26 7 26 C7 13 13.5 6 26 6 Z" fill="url(#eldrin-leaf-g)"/>
+  <path d="M9.8 23.4 L24 8" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
+  <path d="M13.4 19.6 L9.8 14.9 M17.5 15.4 L13.9 10.7 M21.4 11.6 L17.8 6.9" stroke="#FFFFFF" stroke-width="1.4" stroke-linecap="round" opacity="0.75"/>
+</svg>
